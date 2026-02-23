@@ -67,6 +67,9 @@ namespace KGR
 			// to move 
 			void	createTextureSampler();
 
+			void BeginRendering();
+			void EndRendering();
+
 
 			// never Use !!!
 			static bool hasStencilComponent(vk::Format format);
@@ -113,6 +116,8 @@ namespace KGR
 
 			std::vector<Vertex> vertices;
 			std::vector<uint32_t> indices;
+
+			vk::raii::CommandBuffer* m_currentBuffer;
 		};
 	}
 }
