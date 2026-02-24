@@ -75,7 +75,6 @@ int main(int argc, char** argv)
 	do
 	{
 		KGR::_GLFW::Window::PollEvent();
-		app.mainLoop();
 
 		ImGui_ImplVulkan_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
@@ -112,9 +111,9 @@ int main(int argc, char** argv)
 			ImGui::End();
 		}
 
-		 ImGui::Render();
-		 //app.drawFrame();
-			
+		ImGui::Render();
+		app.drawFrame();
+
 	} 
 	while (!window.ShouldClose());
 
