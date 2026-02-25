@@ -32,6 +32,8 @@ struct CameraComponent;
 class TransformComponent;
 class MeshComponent;
 
+struct ImDrawData;
+
 namespace KGR
 {
 	namespace _Vulkan
@@ -48,6 +50,9 @@ namespace KGR
 			void initVulkan();
 			void recreateSwapChain();
 			std::uint32_t PresentImage();
+			void recordCommandBuffer(uint32_t imageIndex, vk::raii::CommandBuffer& buffer);
+			void recordCommandBuffer(uint32_t imageIndex, vk::raii::CommandBuffer& buffer, ImDrawData* drawData);
+			void LoadModel();
 			void transition_image_layout(
 				vk::Image               image,
 				vk::ImageLayout         old_layout,
@@ -60,6 +65,11 @@ namespace KGR
 			void transitionImageLayout(const vk::raii::Image& image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout,uint32_t mipLevels);
 
 			void generateMipmaps(vk::raii::Image& image, vk::Format imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
+
+
+			void drawFrame();
+			void drawFrame(ImDrawData* drawData);
+
 			// to move 
 			void	createTextureSampler();
 
@@ -99,6 +109,33 @@ namespace KGR
 			void RegisterCam(CameraComponent& cam, TransformComponent& transform);
 			void RegisterRender(MeshComponent& mesh, TransformComponent& transform);
 			void Render(const glm::vec4& color = { 0,0,0,1 });
+			Instance& GetInstance();
+			const Instance& GetInstance() const;
+
+			Surface& GetSurface();
+			const Surface& GetSurface() const;
+
+			PhysicalDevice& GetPhysicalDevice();
+			const PhysicalDevice& GetPhysicalDevice() const;
+
+			Device& GetDevice();
+			const Device& GetDevice() const;
+
+			Queue& GetQueue();
+			const Queue& GetQueue() const;
+
+			SwapChain& GetSwapChain();
+			const SwapChain& GetSwapChain() const;
+
+			ImagesViews& GetImagesViews();
+			const ImagesViews& GetImagesViews() const;
+
+			Pipeline& GetGraphicsPipeline();
+			const Pipeline& GetGraphicsPipeline() const;
+
+			DescriptorPool& GetDescriptorPool();
+			const DescriptorPool& GetDescriptorPool() const;
+
 		private:
 			int BeginRendering(const glm::vec4& color = {0,0,0,1});
 			int EndRendering();
