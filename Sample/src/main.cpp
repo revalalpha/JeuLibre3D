@@ -34,6 +34,11 @@ int main(int argc, char** argv)
 
 	 window.DestroyMyWindow();
      KGR::_GLFW::Window::Destroy();
+
+
+	 // local Box 
+	 // transform -> espace monde 
+	 // camera -> espace monde
 }
 
 //#include "Global.h"

@@ -13,6 +13,8 @@
 #include "Queue.h"
 #include "SwapChain.h"
 #include "CommandBuffers.h"
+#include "DebugRenderer.h"
+#include "VertexDebug.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -56,10 +58,7 @@ namespace KGR
 				vk::PipelineStageFlags2 dst_stage_mask, vk::ImageAspectFlags    image_aspect_flags, vk::raii::CommandBuffer& buffer);
 
 			void transitionImageLayout(const vk::raii::Image& image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout,uint32_t mipLevels);
-
 			void generateMipmaps(vk::raii::Image& image, vk::Format imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
-
-
 			void drawFrame();
 
 			// to move 
@@ -67,7 +66,6 @@ namespace KGR
 
 			void BeginRendering();
 			void EndRendering();
-
 
 			// never Use !!!
 			static bool hasStencilComponent(vk::Format format);
@@ -91,11 +89,13 @@ namespace KGR
 			DescriptorPool descriptorPool;
 			std::vector<DescriptorSet> descriptorSets;
 			Pipeline               graphicsPipeline;
+			// --- DEBUG ---
+			DebugRenderer debugRenderer;
+			Pipeline debugPipeline;
 
 			Buffer vertexBuffer;
 			Buffer indexBuffer;
 			CommandBuffers         commandBuffers;
-
 
 			std::vector<Buffer> uniformBuffers;
 
@@ -104,8 +104,6 @@ namespace KGR
 
 			Image textureImage;
 			vk::raii::Sampler      textureSampler = nullptr;
-
-
 
 			Image depthImage;
 

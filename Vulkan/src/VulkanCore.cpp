@@ -46,6 +46,14 @@ void KGR::_Vulkan::VulkanCore::initVulkan()
 		.vertexMain = "vertMain",
 		.fragmentMain = "fragMain"
 	};
+
+	_Vulkan::ShaderInfo debugInfo{
+		.ShaderPath = "Shaders/debug/slang.spv",
+		.vertexMain = "vertMain",
+		.fragmentMain = "fragMain"
+	};
+
+
 	// Layouts 
 	std::vector<vk::DescriptorSetLayoutBinding> bindings = {
 			vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eVertex, nullptr),
@@ -55,6 +63,8 @@ void KGR::_Vulkan::VulkanCore::initVulkan()
 	descriptorSetLayout.Add(std::move(layout));
 
 	graphicsPipeline = _Vulkan::Pipeline(info, &device, &swapChain,&descriptorSetLayout,&physicalDevice,vk::PolygonMode::eFill);
+	debugPipeline = _Vulkan::Pipeline(debugInfo, &device, &swapChain, &descriptorSetLayout, &physicalDevice, vk::PolygonMode::eLine);
+
 	// Command Buffer
 	commandBuffers = _Vulkan::CommandBuffers(&device);
 
