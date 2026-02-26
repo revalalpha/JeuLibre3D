@@ -36,17 +36,15 @@ int main(int argc, char** argv)
 	MeshComponent meshComp;
 	meshComp.mesh = &MeshLoader::Load("Models\\viking_room.obj", &app);
 	MeshComponent meshComp2;
-	meshComp2.mesh = &MeshLoader::Load("Models\\briet_claire_decorsfantasy_grpB.obj", &app);
+	meshComp2.mesh = &MeshLoader::Load("Models\\CUBE.obj", &app);
 	TransformComponent transform;
 	transform.SetPosition(glm::vec3(0, 0, 0));
 	transform.SetScale({2, 2, 2});
 	transform.RotateQuat<RotData::Orientation::Pitch>(glm::radians(-90.0f));
 	TransformComponent transform2;
-	transform2.RotateQuat<RotData::Orientation::Pitch>(glm::radians(-90.0f));
-
+	transform2.SetScale({ 10,0.1,10 });
 	CameraComponent cam = CameraComponent :: Create(45.0f,static_cast<float>(window.GetSize().x),static_cast<float>(window.GetSize().y),0.01f,1000.0f,CameraComponent::Type::Perspective);
 	TransformComponent camTransform;
-
 
 
 
@@ -69,7 +67,7 @@ int main(int argc, char** argv)
 
 		float radius = 5.0f;
 		float camX = std::cos(angle) * radius;
-		float camY = 0.0f;
+		float camY = 1.0f;
 		float camZ = std::sin(angle) * radius;
 
 		camTransform.SetPosition({ camX, camY, camZ });
@@ -79,9 +77,9 @@ int main(int argc, char** argv)
 		// Render
 		
 		app.RegisterCam(cam, camTransform);
-		app.RegisterRender(meshComp, transform);
-		app.Render();
-	
+		app.RegisterRender(meshComp2, transform2);
+		app.Render({0.53f,0.81f,0.92f ,1.0f});
+		
 	}
 	while (!window.ShouldClose());
 
