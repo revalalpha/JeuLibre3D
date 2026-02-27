@@ -6,6 +6,7 @@
 #include "Core/ManagerImple.h"
 #include "Core/Mesh.h"
 #include "Core/TrasformComponent.h"
+#include "Core/LightComponent.h"
 
 int main(int argc, char** argv)
 {
@@ -47,7 +48,7 @@ int main(int argc, char** argv)
 	TransformComponent camTransform;
 
 
-
+	std::cout << sizeof(LightData);
 
 	do
 	{

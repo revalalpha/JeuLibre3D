@@ -91,7 +91,8 @@ public:
 	void RotateQuat(float angleRad);
 	template<IsValidRep rep = Rep>
 	void LookAt(const glm::vec3& target);
-
+	template<IsValidRep rep = Rep>
+	void LookAtDir(const glm::vec3& target);
 
 	// ROTATION 
 	glm::vec3 GetRotation() const;
@@ -138,6 +139,15 @@ void TransformComponent::LookAt(const glm::vec3& target)
 	UpdateEulerAngle();
 	m_rotation.isDirty = true;
 
+}
+
+template <IsValidRep rep>
+void TransformComponent::LookAtDir(const glm::vec3& target)
+{
+	glm::vec3 forward = glm::normalize(target);
+	m_rotation.data = glm::quatLookAt(forward, RotData::ToVector<RotData::Dir::Up, rep>());
+	UpdateEulerAngle();
+	m_rotation.isDirty = true;
 }
 
 template <RotData::Orientation orientation, IsValidRep rep = Rep>
