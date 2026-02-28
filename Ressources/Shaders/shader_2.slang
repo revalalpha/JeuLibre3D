@@ -69,6 +69,8 @@ StructuredBuffer<LightData> Alllights;
 
 [[vk::binding(1, 1)]]
 ConstantBuffer<uint> lightCount;
+[[vk::binding(0, 2)]]
+ConstantBuffer<Sampler2D> sampler;
 
 [shader("fragment")]
 float4 fragMain(VSOutput vertIn) : SV_TARGET {
@@ -89,7 +91,7 @@ float4 fragMain(VSOutput vertIn) : SV_TARGET {
             float3 H = normalize(L + V);
 
             // base color
-            float3 Kd = data.texture.Sample(vertIn.fragTexCoord).rgb;
+            float3 Kd = sampler.Sample(vertIn.fragTexCoord).rgb;
             // specular color
             float3 Ks = currentLight.specColor.xyz;
             // shiny
@@ -119,7 +121,7 @@ float4 fragMain(VSOutput vertIn) : SV_TARGET {
             float3 H = normalize(-lightDir + V);
 
             // base color
-            float3 Kd = data.texture.Sample(vertIn.fragTexCoord).rgb;
+            float3 Kd = sampler.Sample(vertIn.fragTexCoord).rgb;
             // specular color
             float3 Ks = currentLight.specColor.xyz;
             // shiny
@@ -145,7 +147,7 @@ float4 fragMain(VSOutput vertIn) : SV_TARGET {
             float3 H = normalize(L + V);
 
             // base color
-            float3 Kd = data.texture.Sample(vertIn.fragTexCoord).rgb;
+            float3 Kd = sampler.Sample(vertIn.fragTexCoord).rgb;
             // specular color
             float3 Ks = currentLight.specColor.xyz;
             // shiny

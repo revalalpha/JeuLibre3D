@@ -30,10 +30,17 @@
 #include "Core/TrasformComponent.h"
 #include "Core/Vertex.h"
 
+struct TextureComponent;
 struct CameraComponent;
 class TransformComponent;
 class MeshComponent;
 
+struct MeshData
+{
+	glm::mat4 matrixModel; 
+	MeshComponent* mesh = nullptr;
+	TextureComponent* texture = nullptr;
+};
 namespace KGR
 {
 	namespace _Vulkan
@@ -41,7 +48,6 @@ namespace KGR
 		class VulkanCore
 		{
 		public:
-			using pair = std::pair<glm::mat4, MeshComponent*>;
 			/**
 			 * @brief 
 			 * @param window 
@@ -96,10 +102,12 @@ namespace KGR
 			// callBack for instance
 			static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(vk::DebugUtilsMessageSeverityFlagBitsEXT severity, vk::DebugUtilsMessageTypeFlagsEXT type, const vk::DebugUtilsMessengerCallbackDataEXT* pCallbackData, void*);
 
+			Image CreateImage(const std::string& filePath);
+			DescriptorSet CreateSetForImage(Image* image);
 			template<LightData::Type Type>
 			void RegisterLight(LightComponent<Type>& light, TransformComponent& transform);
 			void RegisterCam(CameraComponent& cam, TransformComponent& transform);
-			void RegisterRender(MeshComponent& mesh, TransformComponent& transform);
+			void RegisterRender(MeshComponent& mesh, TransformComponent& transform,TextureComponent& texture);
 			void Render(const glm::vec4& color = { 0,0,0,1 });
 		private:
 			int BeginRendering(const glm::vec4& color = {0,0,0,1});
@@ -125,15 +133,11 @@ namespace KGR
 			CommandBuffers         commandBuffers;
 
 
-		Buffer uniformBuffers;
-
+			Buffer uniformBuffers;
 			SyncObject syncObject;
 
-
-			Image textureImage;
-			vk::raii::Sampler      textureSampler = nullptr;
-
-
+			Image textureImage2;
+			vk::raii::Sampler textureSampler = nullptr;
 
 			Image depthImage;
 
@@ -151,7 +155,7 @@ namespace KGR
 
 
 			std::optional<UniformBufferObject> m_ubo;
-			std::vector<pair> m_toRenderObject;
+			std::vector<MeshData> m_toRenderObject;
 		};
 
 		template <LightData::Type Type>

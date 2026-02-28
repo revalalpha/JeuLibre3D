@@ -7,6 +7,7 @@
 #include "Core/Mesh.h"
 #include "Core/TrasformComponent.h"
 #include "Core/LightComponent.h"
+#include "Core/Texture.h"
 
 int main(int argc, char** argv)
 {
@@ -17,7 +18,7 @@ int main(int argc, char** argv)
 	fileManager::SetGlobalFIlePath(projectRoot / "Ressources");
 	STBManager::SetGlobalFIlePath(projectRoot / "Ressources");
 	MeshLoader::SetGlobalFIlePath(projectRoot / "Ressources");
-
+	TextureLoader::SetGlobalFIlePath(projectRoot / "Ressources");
 
 	KGR::_GLFW::Window::Init();
 	KGR::_GLFW::Window::AddHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -68,6 +69,11 @@ int main(int argc, char** argv)
 	lTransform3.SetPosition({ -5,1,0 });
 	lTransform3.LookAtDir({1,-1,0});
 
+
+	TextureComponent texture;
+	//texture.texture = &TextureLoader::Load("Textures\\BaseTexture.png", &app);
+	texture.texture = &TextureLoader::Load("Textures\\viking_room.png", &app);
+
 	do
 	{
 		// event
@@ -96,7 +102,7 @@ int main(int argc, char** argv)
 		// Render
 		
 		app.RegisterCam(cam, camTransform);
-		app.RegisterRender(meshComp2, transform2);
+		app.RegisterRender(meshComp2, transform2,texture);
 		app.RegisterLight(lComp,lTransform);
 		app.RegisterLight(lComp2, lTransform2);
 		app.RegisterLight(lComp3, lTransform3);
@@ -108,8 +114,7 @@ int main(int argc, char** argv)
 
 	 window.DestroyMyWindow();
 	 MeshLoader::UnloadAll();
+	 TextureLoader::UnloadAll();
      KGR::_GLFW::Window::Destroy();
-
-	
 }
 

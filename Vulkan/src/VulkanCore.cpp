@@ -18,6 +18,7 @@
 #include "../../ImGui/include/imgui.h"
 #include "Core/TrasformComponent.h"
 #include "Core/CameraComponent.h"
+#include "Core/Texture.h"
 
 KGR::_Vulkan::VulkanCore::VulkanCore(GLFWwindow* window_) : window(window_)
 {
@@ -66,6 +67,14 @@ void KGR::_Vulkan::VulkanCore::initVulkan()
 	};
 	auto layout2 = DescriptorLayout(bindings2, &device);
 	descriptorSetLayout.Add(std::move(layout2));
+
+
+	std::vector<vk::DescriptorSetLayoutBinding> bindings3 = {
+					vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eCombinedImageSampler, 1, vk::ShaderStageFlagBits::eFragment, nullptr)
+	};
+	auto layout3 = DescriptorLayout(bindings3, &device);
+	descriptorSetLayout.Add(std::move(layout3));
+
 
 	graphicsPipeline = _Vulkan::Pipeline(info, &device, &swapChain,&descriptorSetLayout,&physicalDevice,vk::PolygonMode::eFill);
 	// Command Buffer
@@ -118,12 +127,12 @@ void KGR::_Vulkan::VulkanCore::initVulkan()
 	buffer.UnMapMemory();
 
 	uint32_t mipLevel = static_cast<uint32_t>(std::floor(std::log2(std::max(image.width, image.height)))) + 1;
-	textureImage = Image(image.width, image.height, mipLevel, vk::Format::eR8G8B8A8Srgb, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled, vk::MemoryPropertyFlagBits::eDeviceLocal, &device, &physicalDevice);
-	transitionImageLayout(textureImage.Get(), vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, textureImage.GetMimMap());
-	buffer.CopyImage(&textureImage, &device, &queue, &commandBuffers);
+	textureImage2 = Image(image.width, image.height, mipLevel, vk::Format::eR8G8B8A8Srgb, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled, vk::MemoryPropertyFlagBits::eDeviceLocal, &device, &physicalDevice);
+	transitionImageLayout(textureImage2.Get(), vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, textureImage2.GetMimMap());
+	buffer.CopyImage(&textureImage2, &device, &queue, &commandBuffers);
 //	transitionImageLayout(textureImage.Get(), vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, textureImage.GetMimMap());
-	textureImage.CreateView(vk::Format::eR8G8B8A8Srgb, vk::ImageAspectFlagBits::eColor, &device);
-	generateMipmaps(textureImage.Get(), vk::Format::eR8G8B8A8Srgb,textureImage.GetWidth(), textureImage.GetHeight(), textureImage.GetMimMap());
+	textureImage2.CreateView(vk::Format::eR8G8B8A8Srgb, vk::ImageAspectFlagBits::eColor, &device);
+	generateMipmaps(textureImage2.Get(), vk::Format::eR8G8B8A8Srgb,textureImage2.GetWidth(), textureImage2.GetHeight(), textureImage2.GetMimMap());
 	createTextureSampler();
 
 
@@ -164,7 +173,7 @@ void KGR::_Vulkan::VulkanCore::initVulkan()
 			.range = uniformBuffers.GetSize() };
 		vk::DescriptorImageInfo imageInfo{
 			.sampler = textureSampler,
-			.imageView = textureImage.GetView(),
+			.imageView = textureImage2.GetView(),
 			.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal };
 		vk::DescriptorBufferInfo bufferInfo2{
 		.buffer = m_lightBuffer.Get(),
@@ -588,6 +597,48 @@ vk::Bool32 KGR::_Vulkan::VulkanCore::debugCallback(vk::DebugUtilsMessageSeverity
 	return vk::False;
 }
 
+KGR::_Vulkan::Image KGR::_Vulkan::VulkanCore::CreateImage(const std::string& filePath)
+{
+	auto& image = STBManager::Load(filePath);
+	vk::DeviceSize imageSize = image.width * image.height * 4;
+	KGR::_Vulkan::Buffer buffer = KGR::_Vulkan::Buffer(&device, &physicalDevice, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, imageSize);
+	buffer.MapMemory(imageSize);
+	buffer.Upload(image.pixels, imageSize);
+	buffer.UnMapMemory();
+	uint32_t mipLevel = static_cast<uint32_t>(std::floor(std::log2(std::max(image.width, image.height)))) + 1;
+	KGR::_Vulkan::Image textureImage = KGR::_Vulkan::Image(image.width, image.height, mipLevel, vk::Format::eR8G8B8A8Srgb, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled, vk::MemoryPropertyFlagBits::eDeviceLocal, &device, &physicalDevice);
+	transitionImageLayout(textureImage.Get(), vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, textureImage.GetMimMap());
+	buffer.CopyImage(&textureImage, &device, &queue, &commandBuffers);
+	textureImage.CreateView(vk::Format::eR8G8B8A8Srgb, vk::ImageAspectFlagBits::eColor, &device);
+	generateMipmaps(textureImage.Get(), vk::Format::eR8G8B8A8Srgb, textureImage.GetWidth(), textureImage.GetHeight(), textureImage.GetMimMap());
+
+	return textureImage;
+}
+
+KGR::_Vulkan::DescriptorSet KGR::_Vulkan::VulkanCore::CreateSetForImage(Image* image)
+{
+	DescriptorSet set = DescriptorSet(&device, &descriptorPool, &descriptorSetLayout.Get(2));
+	vk::DescriptorImageInfo imageInfo{
+			.sampler = textureSampler,
+			.imageView = image->GetView(),
+			.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal };
+
+	std::array<vk::WriteDescriptorSet,1> descriptorWrites{
+		vk::WriteDescriptorSet{
+				.dstSet = set.Get(),
+				.dstBinding = 0,
+				.dstArrayElement = 0,
+				.descriptorCount = 1,
+				.descriptorType = vk::DescriptorType::eCombinedImageSampler,
+				.pImageInfo = &imageInfo}
+	};
+
+
+
+	device.Get().updateDescriptorSets(descriptorWrites, {});
+	return set;
+}
+
 void KGR::_Vulkan::VulkanCore::RegisterCam(CameraComponent& cam, TransformComponent& transform)
 {
 
@@ -600,9 +651,9 @@ void KGR::_Vulkan::VulkanCore::RegisterCam(CameraComponent& cam, TransformCompon
 	m_ubo->proj[1][1] *= -1;
 }
 
-void KGR::_Vulkan::VulkanCore::RegisterRender(MeshComponent& mesh, TransformComponent& transform)
+void KGR::_Vulkan::VulkanCore::RegisterRender(MeshComponent& mesh, TransformComponent& transform,TextureComponent& texture)
 {
-	m_toRenderObject.push_back({transform.GetFullTransform() ,&mesh });
+	m_toRenderObject.push_back(MeshData{transform.GetFullTransform() ,&mesh,&texture });
 }
 
 void KGR::_Vulkan::VulkanCore::Render(const glm::vec4& color )
@@ -625,14 +676,14 @@ void KGR::_Vulkan::VulkanCore::Render(const glm::vec4& color )
 	}
 	for (auto& it: m_toRenderObject)
 	{
-		for (int i = 0; i < it.second->mesh->GetSubMeshesCount(); ++i)
+		for (int i = 0; i < it.mesh->mesh->GetSubMeshesCount(); ++i)
 		{
-			it.second->mesh->Bind(m_currentBuffer, i);
-			m_currentBuffer->pushConstants<glm::mat4>(graphicsPipeline.GetLayout(), vk::ShaderStageFlagBits::eVertex, 0, it.first);
+			it.mesh->mesh->Bind(m_currentBuffer, i);
+			m_currentBuffer->pushConstants<glm::mat4>(graphicsPipeline.GetLayout(), vk::ShaderStageFlagBits::eVertex, 0, it.matrixModel);
 			m_currentBuffer->bindDescriptorSets(vk::PipelineBindPoint::eGraphics, graphicsPipeline.GetLayout(), 0, *descriptorSets.Get(), nullptr);
 			m_currentBuffer->bindDescriptorSets(vk::PipelineBindPoint::eGraphics, graphicsPipeline.GetLayout(), 1, *m_LightSet.Get(), nullptr);
-
-			m_currentBuffer->drawIndexed(it.second->mesh->GetSubMesh(i).IndexCount(), 1, 0, 0, 0);
+			it.texture->texture->Bind(m_currentBuffer, &graphicsPipeline.GetLayout(), 2);
+			m_currentBuffer->drawIndexed(it.mesh->mesh->GetSubMesh(i).IndexCount(), 1, 0, 0, 0);
 		}
 	}
 	result = EndRendering();
