@@ -7,7 +7,7 @@
 #include "Core/ManagerImple.h"
 #include "PhysicalDevice.h"
 
-KGR::_Vulkan::Pipeline::Pipeline(const ShaderInfo& shaderInfo, Device* device, SwapChain* swapChain , DescriptorLayouts* layouts,PhysicalDevice* phDevice, vk::PolygonMode mode)
+KGR::_Vulkan::Pipeline::Pipeline(const ShaderInfo& shaderInfo, Device* device, SwapChain* swapChain, DescriptorLayouts* layouts, PhysicalDevice* phDevice, vk::PolygonMode mode, const vk::VertexInputBindingDescription& vInput, const std::vector < vk::VertexInputAttributeDescription>& attributes)
 {
 
 	//
@@ -29,8 +29,8 @@ KGR::_Vulkan::Pipeline::Pipeline(const ShaderInfo& shaderInfo, Device* device, S
 	vk::PipelineShaderStageCreateInfo fragShaderStageInfo{ .stage = vk::ShaderStageFlagBits::eFragment, .module = shaderModule, .pName = shaderInfo.fragmentMain };
 	vk::PipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
 
-	auto                                     bindingDescription = Vertex::getBindingDescription();
-	auto                                     attributeDescriptions = Vertex::getAttributeDescriptions();
+	auto                                     bindingDescription =vInput;
+	auto                                     attributeDescriptions = attributes;
 	vk::PipelineVertexInputStateCreateInfo vertexInputInfo{
 			.vertexBindingDescriptionCount = 1,
 			.pVertexBindingDescriptions = &bindingDescription,

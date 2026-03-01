@@ -41,15 +41,22 @@ struct MeshData
 	MeshComponent* mesh = nullptr;
 	TextureComponent* texture = nullptr;
 };
+
+
+struct Segment
+{
+	glm::vec3 pos1;
+	glm::vec3 pos2;
+	float  thickness;
+	glm::vec4 color;
+
+};
+
+
 namespace KGR
 {
 	namespace _Vulkan
 	{
-
-
-
-
-
 		class VulkanCore
 		{
 		public:
@@ -69,8 +76,8 @@ namespace KGR
 			void RegisterRender(MeshComponent& mesh, TransformComponent& transform,TextureComponent& texture);
 			void Render(GLFWwindow* window,const glm::vec4& clearColor = { 0,0,0,1 });
 		private:
-			int BeginRendering(GLFWwindow* window, vk::raii::CommandBuffer* currentBuffer, const glm::vec4& color = {0,0,0,1});
-			int EndRendering(GLFWwindow* window, vk::raii::CommandBuffer* currentBuffer);
+			int BeginRendering(GLFWwindow* window, vk::raii::CommandBuffer* currentBuffer, Pipeline* pipeline, const glm::vec4& color = {0,0,0,1});
+			int EndRendering(GLFWwindow* window, vk::raii::CommandBuffer* currentBuffer,const std::vector<vk::Semaphore>& waitS);
 			void recreateSwapChain(GLFWwindow* window);
 			std::uint32_t PresentImage();
 			void transition_image_layout(
@@ -95,6 +102,8 @@ namespace KGR
 			DescriptorPool descriptorPool;
 			DescriptorSet descriptorSets;
 			Pipeline               graphicsPipeline;
+			Pipeline               linePipeLine;
+
 			CommandBuffers         commandBuffers;
 			
 			SyncObject syncObject;
@@ -102,6 +111,14 @@ namespace KGR
 			Image depthImage;
 			std::vector<const char*> requiredDeviceExtension = {
 				vk::KHRSwapchainExtensionName };
+
+			//tmp
+			Buffer stagingVertexBuffer;
+			Buffer vertexBuffer;
+			Buffer stagingIndexBuffer;
+			Buffer indexBuffer;
+
+
 
 
 			Buffer uniformBuffers;
