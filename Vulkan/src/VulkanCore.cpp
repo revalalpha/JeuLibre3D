@@ -16,6 +16,7 @@
 #include "Core/Mesh.h"
 #include "Image.h"
 #include "../../ImGui/include/imgui.h"
+#include "../../ImGui/include/Backends/imgui_impl_vulkan.h"
 #include "Core/TrasformComponent.h"
 #include "Core/CameraComponent.h"
 #include "Core/Texture.h"
@@ -495,8 +496,11 @@ int KGR::_Vulkan::VulkanCore::BeginRendering(GLFWwindow* window, vk::raii::Comma
 	return 0;
 }
 
-int KGR::_Vulkan::VulkanCore::EndRendering(GLFWwindow* window, vk::raii::CommandBuffer* currentBuffer, const std::vector<vk::Semaphore>& waitS)
+int KGR::_Vulkan::VulkanCore::EndRendering(GLFWwindow* window, vk::raii::CommandBuffer* currentBuffer, const std::vector<vk::Semaphore>& waitS, ImDrawData* imguiDraw)
 {
+	if (imguiDraw)
+		ImGui_ImplVulkan_RenderDrawData(imguiDraw, **currentBuffer);
+
 	currentBuffer->endRendering();
 	// After rendering, transition the swapchain image to PRESENT_SRC
 	transition_image_layout(
@@ -611,10 +615,12 @@ void KGR::_Vulkan::VulkanCore::RegisterCam(CameraComponent& cam, TransformCompon
 
 void KGR::_Vulkan::VulkanCore::RegisterRender(MeshComponent& mesh, TransformComponent& transform,TextureComponent& texture)
 {
+	if (texture.Size() != mesh.mesh->GetSubMeshesCount())
+		throw std::out_of_range("need same amount of subMeshes and texture");
 	m_toRenderObject.push_back(MeshData{transform.GetFullTransform() ,&mesh,&texture });
 }
 
-void KGR::_Vulkan::VulkanCore::Render(GLFWwindow* window,const glm::vec4& color )
+void KGR::_Vulkan::VulkanCore::Render(GLFWwindow* window,const glm::vec4& color, ImDrawData* imguiDraw)
 {
 	if (!m_ubo.has_value())
 		throw std::runtime_error("need to register Camera");
@@ -650,7 +656,7 @@ void KGR::_Vulkan::VulkanCore::Render(GLFWwindow* window,const glm::vec4& color 
 			currentBuffer->pushConstants<glm::mat4>(graphicsPipeline.GetLayout(), vk::ShaderStageFlagBits::eVertex, 0, it.matrixModel);
 			currentBuffer->bindDescriptorSets(vk::PipelineBindPoint::eGraphics, graphicsPipeline.GetLayout(), 0, *descriptorSets.Get(), nullptr);
 			currentBuffer->bindDescriptorSets(vk::PipelineBindPoint::eGraphics, graphicsPipeline.GetLayout(), 1, *m_LightSet.Get(), nullptr);
-			it.texture->texture->Bind(currentBuffer, &graphicsPipeline.GetLayout(), 2);
+			it.texture->GetTexture(i)->Bind(currentBuffer, &graphicsPipeline.GetLayout(), 2);
 			currentBuffer->drawIndexed(it.mesh->mesh->GetSubMesh(i).IndexCount(), 1, 0, 0, 0);
 		}
 	}
@@ -662,7 +668,7 @@ void KGR::_Vulkan::VulkanCore::Render(GLFWwindow* window,const glm::vec4& color 
 	currentBuffer->drawIndexed(36, 1, 0, 0, 0);
 
 
-	result = EndRendering(window, currentBuffer,{syncObject.GetCurrentPresentSemaphore()});
+	result = EndRendering(window, currentBuffer,{syncObject.GetCurrentPresentSemaphore()}, imguiDraw);
 	commandBuffers.ReleaseCommandBuffer(*currentBuffer);
 	syncObject.IncrementFrame();
 	device.Get().waitIdle();

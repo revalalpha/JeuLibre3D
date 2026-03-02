@@ -11,14 +11,14 @@ KGR::_Vulkan::Pipeline::Pipeline(const ShaderInfo& shaderInfo, Device* device, S
 {
 
 	//
-	auto& file = fileManager::Load(shaderInfo.ShaderPath);
+	auto& file = FileManager::Load(shaderInfo.ShaderPath);
 	file.seekg(0, std::ios::end);
 	auto fileSize = file.tellg();
 	std::vector<char> buffer(fileSize);
 	file.seekg(0, std::ios::beg);
 	file.read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
 	file.close();
-	fileManager::Unload(shaderInfo.ShaderPath);
+	FileManager::Unload(shaderInfo.ShaderPath);
 
 	vk::ShaderModuleCreateInfo createInfo{
 		.codeSize = buffer.size() * sizeof(char),

@@ -26,6 +26,7 @@
 #include "Image.h"
 #include "RTTI.h"
 #include "SyncObject.h"
+#include "../../ImGui/include/imgui.h"
 #include "Core/LightComponent.h"
 #include "Core/TrasformComponent.h"
 #include "Core/Vertex.h"
@@ -74,10 +75,10 @@ namespace KGR
 			void RegisterLight(LightComponent<Type>& light, TransformComponent& transform);
 			void RegisterCam(CameraComponent& cam, TransformComponent& transform);
 			void RegisterRender(MeshComponent& mesh, TransformComponent& transform,TextureComponent& texture);
-			void Render(GLFWwindow* window,const glm::vec4& clearColor = { 0,0,0,1 });
+			void Render(GLFWwindow* window,const glm::vec4& clearColor = { 0,0,0,1 }, ImDrawData* imguiDraw = nullptr);
 		private:
 			int BeginRendering(GLFWwindow* window, vk::raii::CommandBuffer* currentBuffer, Pipeline* pipeline, const glm::vec4& color = {0,0,0,1});
-			int EndRendering(GLFWwindow* window, vk::raii::CommandBuffer* currentBuffer,const std::vector<vk::Semaphore>& waitS);
+			int EndRendering(GLFWwindow* window, vk::raii::CommandBuffer* currentBuffer,const std::vector<vk::Semaphore>& waitS, ImDrawData* imguiDraw = nullptr);
 			void recreateSwapChain(GLFWwindow* window);
 			std::uint32_t PresentImage();
 			void transition_image_layout(

@@ -8,76 +8,57 @@
 #include "Core/TrasformComponent.h"
 #include "Core/LightComponent.h"
 #include "Core/Texture.h"
-
+#include "Core/Window.h"
+#include "ECS/Registry.h"
+#include "ECS/Entities.h"
 int main(int argc, char** argv)
 {
-
 	std::filesystem::path exePath = argv[0];
 	std::filesystem::path projectRoot = exePath.parent_path().parent_path().parent_path().parent_path().parent_path();
-
-	fileManager::SetGlobalFIlePath(projectRoot / "Ressources");
-	STBManager::SetGlobalFIlePath(projectRoot / "Ressources");
-	MeshLoader::SetGlobalFIlePath(projectRoot / "Ressources");
-	TextureLoader::SetGlobalFIlePath(projectRoot / "Ressources");
-
-	KGR::_GLFW::Window::Init();
-	KGR::_GLFW::Window::AddHint(GLFW_CLIENT_API, GLFW_NO_API);
-	KGR::_GLFW::Window::AddHint(GLFW_RESIZABLE, GLFW_TRUE);
-	KGR::_GLFW::Window window;
-
-
-	window.CreateMyWindow({ 1280, 720 }, "GC goes Vulkan", nullptr, nullptr);
-
-
-	KGR::_Vulkan::VulkanCore app{};
-
-
-	app.initVulkan(&window.GetWindow());
-
-
-	MeshComponent meshComp;
-	meshComp.mesh = &MeshLoader::Load("Models\\viking_room.obj", &app);
-	MeshComponent meshComp2;
-	meshComp2.mesh = &MeshLoader::Load("Models\\CUBE.obj", &app);
-	TransformComponent transform;
-	transform.SetPosition(glm::vec3(0, 0, 0));
-	transform.SetScale({2, 2, 2});
-	transform.RotateQuat<RotData::Orientation::Pitch>(glm::radians(-90.0f));
-	TransformComponent transform2;
-	transform2.SetScale({ 10,0.1,10 });
-	CameraComponent cam = CameraComponent :: Create(45.0f,static_cast<float>(window.GetSize().x),static_cast<float>(window.GetSize().y),0.01f,1000.0f,CameraComponent::Type::Perspective);
-	TransformComponent camTransform;
-
-	auto lComp = LightComponent<LightData::Type::Directional>::Create({ 1,1,1 }, { 1,1,1 }, 10.0f);
+	KGR::RenderWindow::Init();
+	KGR::RenderWindow window{ {1000,1000},"test",projectRoot / "Ressources" };
+	using ecsType = KGR::ECS::Registry<KGR::ECS::Entity::_64, 100>;
+	auto registry = ecsType{};
 	
-	TransformComponent lTransform;
-	//lTransform.SetPosition({ 0,1,0 });
 
-	lTransform.LookAtDir({ 1,-1,1 });
-	auto loclAxes = lTransform.GetLocalAxe<RotData::Dir::Forward>();
-	std::cout << loclAxes.z;
+	// Cam
+	auto cam = registry.CreateEntity();
+	CameraComponent camComp = CameraComponent::Create(45.0f, static_cast<float>(window.GetSize().x), static_cast<float>(window.GetSize().y), 0.01f, 1000.0f, CameraComponent::Type::Perspective);
+	registry.AddComponents<CameraComponent,TransformComponent>(cam, std::move(camComp),std::move(TransformComponent{}));
+	// Cam
+
+	// entity
+	{
+
+		auto mesh = registry.CreateEntity();
+		MeshComponent meshComp;
+		meshComp.mesh = &MeshLoader::Load("Models\\briet_claire_decorsfantasy_grpB.obj", window.App());
+		TransformComponent transform;
+
+		TextureComponent texture;
+		texture.SetSize(meshComp.mesh->GetSubMeshesCount());
+		for (int i = 0; i < meshComp.mesh->GetSubMeshesCount(); ++i)
+			texture.AddTexture(i, &TextureLoader::Load("Textures\\BaseTexture.png", window.App()));
+		registry.AddComponents<MeshComponent, TransformComponent, TextureComponent>(mesh, std::move(meshComp), std::move(transform), std::move(texture));
+	}
 
 
-	auto lComp2 = LightComponent<LightData::Type::Point>::Create({ 0,0,1 }, { 1,1,1 }, 10.0f, 10.0f);
+	{
+		auto light = registry.CreateEntity();
+		auto lComp = LightComponent<LightData::Type::Directional>::Create({ 1,1,1 }, { 1,1,1 }, 10.0f);
+		TransformComponent lTransform;
+		lTransform.LookAtDir({ 1,-1,1 });
+		registry.AddComponents<LightComponent<LightData::Type::Directional>, TransformComponent>(light, std::move(lComp), std::move(lTransform));
+	}
+	
+	
 
-	TransformComponent lTransform2;
-	lTransform2.SetPosition({ 5,1,0 });
 
-	auto lComp3 = LightComponent<LightData::Type::Spot>::Create({ 0,1,0 }, { 1,1,1 }, 100.0f, 10.0f,glm::radians(45.0f),10.0f);
-
-	TransformComponent lTransform3;
-	lTransform3.SetPosition({ -5,1,0 });
-	lTransform3.LookAtDir({1,-1,0});
-
-
-	TextureComponent texture;
-	texture.texture = &TextureLoader::Load("Textures\\BaseTexture.png", &app);
-	//texture.texture = &TextureLoader::Load("Textures\\viking_room.png", &app);
 
 	do
 	{
 		// event
-		KGR::_GLFW::Window::PollEvent();
+		KGR::RenderWindow::PollEvent();
 		//Update
 		static auto lastTime = std::chrono::high_resolution_clock::now();
 		static float angle = 0.0f;
@@ -89,35 +70,56 @@ int main(int argc, char** argv)
 
 		angle += deltaTime * rotationSpeed;
 
-
 		float radius = 5.0f;
 		float camX = std::cos(angle) * radius;
 		float camY = 5.0f;
 		float camZ = std::sin(angle) * radius;
+	{	
+		auto es = registry.GetAllComponentsView<CameraComponent, TransformComponent>();
+		if (es.Size() != 1)
+			throw std::runtime_error("need one and one cam");
+		for (auto& e : es)
+		{
+			registry.GetComponent<TransformComponent>(e).SetPosition({ camX, camY, camZ });
+			registry.GetComponent<TransformComponent>(e).LookAt({ 0.0f, 0.0f, 0.0f });
+			registry.GetComponent<CameraComponent>(e).UpdateCamera(registry.GetComponent<TransformComponent>(e).GetFullTransform());
+			window.RegisterCam(registry.GetComponent<CameraComponent>(e), registry.GetComponent<TransformComponent>(e));
 
-		camTransform.SetPosition({ camX, camY, camZ });
-		camTransform.LookAt({ 0.0f, 0.0f, 0.0f });
-		cam.UpdateCamera(camTransform.GetFullTransform());
+		}
+	}
 
 		// Render
-		
-		app.RegisterCam(cam, camTransform);
+	{
+		auto es = registry.GetAllComponentsView<MeshComponent, TransformComponent,TextureComponent>();
 
-		for(int i = 0; i < 1; ++i)
-		app.RegisterRender(meshComp2, transform2,texture);
-		for (int i = 0; i < 1; ++i)
-		app.RegisterLight(lComp,lTransform);
-		app.RegisterLight(lComp2, lTransform2);
-		app.RegisterLight(lComp3, lTransform3);
+		for (auto& e : es)
+				window.RegisterRender(registry.GetComponent<MeshComponent>(e), registry.GetComponent<TransformComponent>(e), registry.GetComponent<TextureComponent>(e));
+	}
 
-		app.Render(&window.GetWindow(),{0.53f,0.81f,0.92f ,1.0f});
+	{
+		auto es = registry.GetAllComponentsView<LightComponent<LightData::Type::Point>, TransformComponent>();
+		for (auto& e : es)
+		window.RegisterLight(registry.GetComponent<LightComponent<LightData::Type::Point>>(e), registry.GetComponent<TransformComponent>(e));
+	}
+	{
+		auto es = registry.GetAllComponentsView<LightComponent<LightData::Type::Spot>, TransformComponent>();
+		for (auto& e : es)
+			window.RegisterLight(registry.GetComponent<LightComponent<LightData::Type::Spot>>(e), registry.GetComponent<TransformComponent>(e));
+	}
+
+	{
+		auto es = registry.GetAllComponentsView<LightComponent<LightData::Type::Directional>, TransformComponent>();
+		for (auto& e : es)
+			window.RegisterLight(registry.GetComponent<LightComponent<LightData::Type::Directional>>(e), registry.GetComponent<TransformComponent>(e));
+	}
+
+		window.Render({0.53f,0.81f,0.92f ,1.0f});
 		
 	}
 	while (!window.ShouldClose());
 
-	 window.DestroyMyWindow();
-	 MeshLoader::UnloadAll();
-	 TextureLoader::UnloadAll();
-     KGR::_GLFW::Window::Destroy();
+
+	 window.Destroy();
+	 KGR::RenderWindow::End();
 }
 
