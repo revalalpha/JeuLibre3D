@@ -10,7 +10,7 @@ struct Rep
 {
 	static constexpr glm::vec3 up = {0,1,0};
 	static constexpr glm::vec3 right = {1,0,0};
-	static constexpr glm::vec3 forward = {0,0,1};
+	static constexpr glm::vec3 forward = {0,0,-1};
 };
 
 template<typename Type>
@@ -91,7 +91,8 @@ public:
 	void RotateQuat(float angleRad);
 	template<IsValidRep rep = Rep>
 	void LookAt(const glm::vec3& target);
-
+	template<IsValidRep rep = Rep>
+	void LookAtDir(const glm::vec3& target);
 
 	// ROTATION 
 	glm::vec3 GetRotation() const;
@@ -140,6 +141,15 @@ void TransformComponent::LookAt(const glm::vec3& target)
 
 }
 
+template <IsValidRep rep>
+void TransformComponent::LookAtDir(const glm::vec3& target)
+{
+	glm::vec3 forward = glm::normalize(target - glm::vec3{0,0,0});
+	m_rotation.data = glm::quatLookAt(forward, RotData::ToVector<RotData::Dir::Up, rep>());
+	UpdateEulerAngle();
+	m_rotation.isDirty = true;
+}
+
 template <RotData::Orientation orientation, IsValidRep rep = Rep>
 void TransformComponent::RotateEuler(float angleRad)
 {
@@ -153,5 +163,7 @@ void TransformComponent::RotateEuler(float angleRad)
 template <RotData::Dir dir, IsValidRep rep = Rep>
 glm::vec3 TransformComponent::GetLocalAxe() const
 {
-	return glm::rotate(m_rotation.data, RotData::ToVector<dir,rep>());
+	glm::vec3 result = m_rotation.data * RotData::ToVector<dir, rep>();
+	return result;
+
 }

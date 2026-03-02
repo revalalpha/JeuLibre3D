@@ -28,11 +28,33 @@
 #include "Image.h"
 #include "RTTI.h"
 #include "SyncObject.h"
+#include "../../ImGui/include/imgui.h"
+#include "Core/LightComponent.h"
+#include "Core/TrasformComponent.h"
 #include "Core/Vertex.h"
 
+struct TextureComponent;
 struct CameraComponent;
 class TransformComponent;
-class MeshComponent;
+struct MeshComponent;
+
+struct MeshData
+{
+	glm::mat4 matrixModel; 
+	MeshComponent* mesh = nullptr;
+	TextureComponent* texture = nullptr;
+};
+
+
+struct Segment
+{
+	glm::vec3 pos1;
+	glm::vec3 pos2;
+	float  thickness;
+	glm::vec4 color;
+
+};
+
 
 namespace KGR
 {
@@ -41,17 +63,26 @@ namespace KGR
 		class VulkanCore
 		{
 		public:
-			/**
-			 * @brief 
-			 * @param window 
-			 */
-			VulkanCore(GLFWwindow* window);
-			void initVulkan();
-			void mainLoop();
-			void recreateSwapChain();
+			void initVulkan(GLFWwindow* window);
+			static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(vk::DebugUtilsMessageSeverityFlagBitsEXT severity, vk::DebugUtilsMessageTypeFlagsEXT type, const vk::DebugUtilsMessengerCallbackDataEXT* pCallbackData, void*);
+			void createTextureSampler();
+			Image CreateImage(const std::string& filePath);
+			DescriptorSet CreateSetForImage(Image* image);
+			template<typename VertexT>
+			Buffer CreateVertexBuffer(const std::vector<VertexT>& vertices);
+			template<typename IndexT>
+			Buffer CreateIndexBuffer(const std::vector<IndexT>& indices);
+			
+			template<LightData::Type Type>
+			void RegisterLight(LightComponent<Type>& light, TransformComponent& transform);
+			void RegisterCam(CameraComponent& cam, TransformComponent& transform);
+			void RegisterRender(MeshComponent& mesh, TransformComponent& transform,TextureComponent& texture);
+			void Render(GLFWwindow* window,const glm::vec4& clearColor = { 0,0,0,1 }, ImDrawData* imguiDraw = nullptr);
+		private:
+			int BeginRendering(GLFWwindow* window, vk::raii::CommandBuffer* currentBuffer, Pipeline* pipeline, const glm::vec4& color = {0,0,0,1});
+			int EndRendering(GLFWwindow* window, vk::raii::CommandBuffer* currentBuffer,const std::vector<vk::Semaphore>& waitS, ImDrawData* imguiDraw = nullptr);
+			void recreateSwapChain(GLFWwindow* window);
 			std::uint32_t PresentImage();
-			void recordCommandBuffer(uint32_t imageIndex, vk::raii::CommandBuffer& buffer);
-			void LoadModel();
 			void transition_image_layout(
 				vk::Image               image,
 				vk::ImageLayout         old_layout,
@@ -60,58 +91,8 @@ namespace KGR
 				vk::AccessFlags2        dst_access_mask,
 				vk::PipelineStageFlags2 src_stage_mask,
 				vk::PipelineStageFlags2 dst_stage_mask, vk::ImageAspectFlags    image_aspect_flags, vk::raii::CommandBuffer& buffer);
-
-			void transitionImageLayout(const vk::raii::Image& image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout,uint32_t mipLevels);
+			void transitionImageLayout(const vk::raii::Image& image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, uint32_t mipLevels);
 			void generateMipmaps(vk::raii::Image& image, vk::Format imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
-			void SetCamera(TransformComponent& transform);
-			void DrawMesh(MeshComponent& mesh,TransformComponent& transform);
-			void SetCamera(CameraComponent& cam,TransformComponent& transform);
-			void drawFrame();
-			void TMPUPDATE();
-			// to move 
-			void	createTextureSampler();
-
-			void BeginRendering();
-			void EndRendering();
-
-		
-			template<typename Type>
-			Type& Get()
-			{
-				if constexpr (std::is_same_v<Type, Instance>)
-					return instance;
-				else if constexpr (std::is_same_v<Type, Surface>)
-					return surface;
-				else if constexpr (std::is_same_v<Type, PhysicalDevice>)
-					return physicalDevice;
-				else if constexpr (std::is_same_v<Type, Device>)
-					return device;
-				else if constexpr (std::is_same_v<Type, Queue>)
-					return queue;
-				else if constexpr (std::is_same_v<Type, SwapChain>)
-					return swapChain;
-				else if constexpr (std::is_same_v<Type, Pipeline>)
-					return graphicsPipeline;
-				else if constexpr (std::is_same_v<Type, CommandBuffers>)
-					return commandBuffers;
-				else if constexpr(std::is_same_v<Type, DebugRenderer>)
-					return debugRenderer;
-				else static_assert("Type not supported");
-
-			}
-			// never Use !!!
-			static bool hasStencilComponent(vk::Format format);
-			// find the depth format generic version
-			void updateUniformBuffer(uint32_t currentImage);
-			// callBack for instance
-			static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(vk::DebugUtilsMessageSeverityFlagBitsEXT severity, vk::DebugUtilsMessageTypeFlagsEXT type, const vk::DebugUtilsMessengerCallbackDataEXT* pCallbackData, void*);
-			bool showDebug = false;
-		private:
-			// window
-			GLFWwindow* window = nullptr;
-			glm::mat4 lastModelMatrixUsedForMesh = glm::mat4(1.0f);
-			vk::RenderingInfo renderingInfo;
-
 			Instance               instance;
 			Surface                surface;
 			PhysicalDevice         physicalDevice ;
@@ -121,31 +102,78 @@ namespace KGR
 
 			DescriptorLayouts descriptorSetLayout;
 			DescriptorPool descriptorPool;
-			std::vector<DescriptorSet> descriptorSets;
+			DescriptorSet descriptorSets;
 			Pipeline               graphicsPipeline;
-			// --- DEBUG ---
-			Pipeline debugPipeline;
+			Pipeline               linePipeLine;
 
-			Buffer vertexBuffer;
-			Buffer indexBuffer;
-			std::vector<Buffer> uniformBuffers;
 			CommandBuffers         commandBuffers;
-
+			
 			SyncObject syncObject;
-
-			Image textureImage;
+			vk::raii::Sampler textureSampler = nullptr;
 			Image depthImage;
-			vk::raii::Sampler      textureSampler = nullptr;
-
 			std::vector<const char*> requiredDeviceExtension = {
 				vk::KHRSwapchainExtensionName };
 
-			//std::vector<Vertex> vertices;
-			//std::vector<uint32_t> indices;
+			//tmp
+			Buffer stagingVertexBuffer;
+			Buffer vertexBuffer;
+			Buffer stagingIndexBuffer;
+			Buffer indexBuffer;
 
-			vk::raii::CommandBuffer* m_currentBuffer;
-			DebugRenderer debugRenderer;
-			Device				   device;
+
+
+
+			Buffer uniformBuffers;
+			std::vector<LightData> m_lights;
+			DescriptorSet m_LightSet;
+			Buffer m_lightBuffer;
+			Buffer m_lightCount;
+			std::optional<UniformBufferObject> m_ubo;
+			std::vector<MeshData> m_toRenderObject;
 		};
+
+		template <typename VertexT>
+		Buffer VulkanCore::CreateVertexBuffer(const std::vector<VertexT>& vertices)
+		{
+			size_t vertSize = vertices.size() * sizeof(VertexT);
+			auto vertexTmp = KGR::_Vulkan::Buffer(&device, &physicalDevice, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, vertSize);
+			vertexTmp.MapMemory(vertSize);
+			vertexTmp.Upload(vertices);
+			vertexTmp.UnMapMemory();
+			auto vertexBuffer = KGR::_Vulkan::Buffer(&device, &physicalDevice, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal, vertSize);
+			vertexBuffer.Copy(&vertexTmp, &device, &queue, &commandBuffers);
+			return vertexBuffer;
+		}
+
+		template <typename IndexT>
+		Buffer VulkanCore::CreateIndexBuffer(const std::vector<IndexT>& indices)
+		{
+			size_t indexSize = indices.size() * sizeof(IndexT);
+			auto indexTmp = KGR::_Vulkan::Buffer(&device, &physicalDevice, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, indexSize);
+			indexTmp.MapMemory(indexSize);
+			indexTmp.Upload(indices);
+			indexTmp.UnMapMemory();
+			auto indexBuffer = KGR::_Vulkan::Buffer(&device, &physicalDevice, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal, indexSize);
+			indexBuffer.Copy(&indexTmp, &device, &queue, &commandBuffers);
+			return indexBuffer;
+		}
+
+		template <LightData::Type Type>
+		void VulkanCore::RegisterLight(LightComponent<Type>& light, TransformComponent& transform)
+		{
+			LightData lightData = light.ToData();
+			if constexpr (Type == LightData::Type::Point)
+				lightData.pos = transform.GetPosition();
+			else if constexpr (Type == LightData::Type::Directional)
+			{
+				lightData.dir = transform.GetLocalAxe<RotData::Dir::Forward>();
+			}
+			else
+			{
+				lightData.pos = transform.GetPosition();
+				lightData.dir = transform.GetLocalAxe<RotData::Dir::Forward>();
+			}
+			m_lights.push_back(lightData);
+		}
 	}
 }

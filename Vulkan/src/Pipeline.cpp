@@ -7,26 +7,18 @@
 #include "Core/ManagerImple.h"
 #include "PhysicalDevice.h"
 
-KGR::_Vulkan::Pipeline::Pipeline(
-	const ShaderInfo& shaderInfo,
-	Device* device,
-	SwapChain* swapChain ,
-	DescriptorLayouts* layouts,
-	PhysicalDevice* phDevice,
-	vk::PolygonMode mode,
-	vk::PrimitiveTopology topology,
-	vk::CullModeFlagBits cullMode )
+KGR::_Vulkan::Pipeline::Pipeline(const ShaderInfo& shaderInfo, Device* device, SwapChain* swapChain, DescriptorLayouts* layouts, PhysicalDevice* phDevice, vk::PolygonMode mode, const vk::VertexInputBindingDescription& vInput, const std::vector < vk::VertexInputAttributeDescription>& attributes)
 {
 
 	//
-	auto& file = fileManager::Load(shaderInfo.ShaderPath);
+	auto& file = FileManager::Load(shaderInfo.ShaderPath);
 	file.seekg(0, std::ios::end);
 	auto fileSize = file.tellg();
 	std::vector<char> buffer(fileSize);
 	file.seekg(0, std::ios::beg);
 	file.read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
 	file.close();
-	fileManager::Unload(shaderInfo.ShaderPath);
+	FileManager::Unload(shaderInfo.ShaderPath);
 
 	vk::ShaderModuleCreateInfo createInfo{
 		.codeSize = buffer.size() * sizeof(char),
@@ -37,8 +29,8 @@ KGR::_Vulkan::Pipeline::Pipeline(
 	vk::PipelineShaderStageCreateInfo fragShaderStageInfo{ .stage = vk::ShaderStageFlagBits::eFragment, .module = shaderModule, .pName = shaderInfo.fragmentMain };
 	vk::PipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
 
-	auto                                     bindingDescription = Vertex::getBindingDescription();
-	auto                                     attributeDescriptions = Vertex::getAttributeDescriptions();
+	auto                                     bindingDescription =vInput;
+	auto                                     attributeDescriptions = attributes;
 	vk::PipelineVertexInputStateCreateInfo vertexInputInfo{
 			.vertexBindingDescriptionCount = 1,
 			.pVertexBindingDescriptions = &bindingDescription,
