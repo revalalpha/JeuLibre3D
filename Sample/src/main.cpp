@@ -19,22 +19,19 @@ int main(int argc, char** argv)
 	KGR::RenderWindow window{ {1000,1000},"test",projectRoot / "Ressources" };
 	using ecsType = KGR::ECS::Registry<KGR::ECS::Entity::_64, 100>;
 	auto registry = ecsType{};
-	
-
 	// Cam
+	{
 	auto cam = registry.CreateEntity();
 	CameraComponent camComp = CameraComponent::Create(45.0f, static_cast<float>(window.GetSize().x), static_cast<float>(window.GetSize().y), 0.01f, 1000.0f, CameraComponent::Type::Perspective);
-	registry.AddComponents<CameraComponent,TransformComponent>(cam, std::move(camComp),std::move(TransformComponent{}));
-	// Cam
+	registry.AddComponents<CameraComponent, TransformComponent>(cam, std::move(camComp), std::move(TransformComponent{}));
+	}
 
 	// entity
 	{
-
 		auto mesh = registry.CreateEntity();
 		MeshComponent meshComp;
 		meshComp.mesh = &MeshLoader::Load("Models\\briet_claire_decorsfantasy_grpB.obj", window.App());
 		TransformComponent transform;
-
 		TextureComponent texture;
 		texture.SetSize(meshComp.mesh->GetSubMeshesCount());
 		for (int i = 0; i < meshComp.mesh->GetSubMeshesCount(); ++i)
@@ -42,12 +39,21 @@ int main(int argc, char** argv)
 		registry.AddComponents<MeshComponent, TransformComponent, TextureComponent>(mesh, std::move(meshComp), std::move(transform), std::move(texture));
 	}
 
-
+	auto colorTransform = [](const glm::vec3& color)
+	{
+			glm::vec3 result;
+			result.x = color.x * 1 / 255;
+			result.y = color.y * 1 / 255;
+			result.y = color.y * 1 / 255;
+			result.y = color.y * 1 / 255;
+			result.z = color.z * 1 / 255;
+			return result;
+	};
 	{
 		auto light = registry.CreateEntity();
-		auto lComp = LightComponent<LightData::Type::Directional>::Create({ 1,1,1 }, { 1,1,1 }, 10.0f);
+		auto lComp = LightComponent<LightData::Type::Directional>::Create(colorTransform({ 154,36,69 }), { 1,1,1 }, 1.0f);
 		TransformComponent lTransform;
-		lTransform.LookAtDir({ 1,-1,1 });
+		lTransform.LookAt({ 0,-1,0});
 		registry.AddComponents<LightComponent<LightData::Type::Directional>, TransformComponent>(light, std::move(lComp), std::move(lTransform));
 	}
 	
@@ -84,11 +90,11 @@ int main(int argc, char** argv)
 			registry.GetComponent<TransformComponent>(e).LookAt({ 0.0f, 0.0f, 0.0f });
 			registry.GetComponent<CameraComponent>(e).UpdateCamera(registry.GetComponent<TransformComponent>(e).GetFullTransform());
 			window.RegisterCam(registry.GetComponent<CameraComponent>(e), registry.GetComponent<TransformComponent>(e));
-
 		}
 	}
 
-		// Render
+
+		// Render Mesh
 	{
 		auto es = registry.GetAllComponentsView<MeshComponent, TransformComponent,TextureComponent>();
 
@@ -112,9 +118,7 @@ int main(int argc, char** argv)
 		for (auto& e : es)
 			window.RegisterLight(registry.GetComponent<LightComponent<LightData::Type::Directional>>(e), registry.GetComponent<TransformComponent>(e));
 	}
-
 		window.Render({0.53f,0.81f,0.92f ,1.0f});
-		
 	}
 	while (!window.ShouldClose());
 
