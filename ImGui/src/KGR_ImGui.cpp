@@ -3,6 +3,7 @@
 #include "Backends/imgui_impl_glfw.h"
 #include "Backends/imgui_impl_vulkan.h"
 #include <Windows.h>
+#include "Core/Mesh.h"
 
 void KGR::_ImGui::ImGuiCore::InitImGui(KGR::_Vulkan::VulkanCore* vulkanCore, KGR::_GLFW::Window* engineWindow)
 {
@@ -10,6 +11,21 @@ void KGR::_ImGui::ImGuiCore::InitImGui(KGR::_Vulkan::VulkanCore* vulkanCore, KGR
 	IMGUI_CHECKVERSION();
 
 	InitContext(m_EngineContext, vulkanCore, engineWindow);
+}
+
+bool KGR::_ImGui::ImGuiCore::LoadMesh(MeshComponent& meshComponent, std::string& path, _Vulkan::VulkanCore& vkCore)
+{
+	std::string newPath = OpenFile();
+	if (newPath.empty())
+		return false;
+
+	vkCore.GetDevice().Get().waitIdle();
+	if (!path.empty())
+		MeshLoader::Unload(path);
+	path = newPath;
+	meshComponent.mesh = &MeshLoader::Load(path, &vkCore);
+
+	return true;
 }
 
 void KGR::_ImGui::ImGuiCore::BeginFrame(ContextTarget target)
@@ -34,6 +50,13 @@ void KGR::_ImGui::ImGuiCore::Render(ContextTarget target)
 void KGR::_ImGui::ImGuiCore::SetContext(ContextTarget target)
 {
     ImGui::SetCurrentContext(target == ContextTarget::Engine ? m_EngineContext : m_GameContext);
+}
+
+void KGR::_ImGui::ImGuiCore::SetWindow(const ImVec2& position, const ImVec2& size, const char* name)
+{
+    ImGui::SetNextWindowPos(position, ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(size, ImGuiCond_FirstUseEver);
+    ImGui::Begin(name);
 }
 
 void KGR::_ImGui::ImGuiCore::Destroy()
@@ -98,4 +121,19 @@ void KGR::_ImGui::ImGuiCore::InitContext(ImGuiContext*& context, KGR::_Vulkan::V
 	ImGui_ImplGlfw_InitForVulkan(&window->GetWindow(), true);
     
     InitInfo();
+}
+
+bool KGR::_ImGui::ImGuiCore::IsButton(ButtonType type)
+{
+    if (type == ButtonType::Object)
+        return ImGui::Button("Object");
+    else if (type == ButtonType::Light)
+        return ImGui::Button("Light");
+    else if (type == ButtonType::Camera)
+        return ImGui::Button("Camera");
+    else if (type == ButtonType::Scene)
+        return ImGui::Button("Scene");
+    else if (type == ButtonType::Load)
+        return ImGui::Button("Load");
+	return false;
 }

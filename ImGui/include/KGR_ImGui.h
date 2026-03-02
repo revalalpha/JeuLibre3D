@@ -18,13 +18,27 @@ namespace KGR
 			Game
 		};
 
+		enum class ButtonType
+		{
+			Object,
+			Light,
+			Camera,
+			Scene,
+			Load
+		};
+
 		class ImGuiCore
 		{
 		public:
 
 			void InitImGui(KGR::_Vulkan::VulkanCore* vulkanCore, KGR::_GLFW::Window* engineWindow);
-			void InitInfo();
 			void InitContext(ImGuiContext*& context, KGR::_Vulkan::VulkanCore* vulkanCore, KGR::_GLFW::Window* window);
+
+			void CreateObject();
+			bool IsButton(ButtonType type);
+			void AddObject();
+			void LoadObject();
+			bool LoadMesh(MeshComponent& meshComponent, std::string& path, _Vulkan::VulkanCore& vkCore);
 
 			void BeginFrame(ContextTarget target);
 			void EndFrame(ContextTarget target, VkCommandBuffer commandBuffer);
@@ -34,9 +48,13 @@ namespace KGR
 
 			void Destroy();
 
+			static void SetWindow(const ImVec2& position, const ImVec2& size, const char* name);
 			static std::string OpenFile();
 
 		private:
+
+			void InitInfo();
+
 			template<typename ReturnType, typename WrapperType>
 			ReturnType Get(WrapperType& type)
 			{

@@ -95,6 +95,8 @@ target_link_libraries(${PROJECT_NAME}
     ${VulkanLib}/vulkan-1.lib
     Vulkan
     imguizmo::imguizmo
+    Engine
+    GameLib
     PRIVATE
   # YourLib
   # ${MYLIB_LIB}/YourLib.lib

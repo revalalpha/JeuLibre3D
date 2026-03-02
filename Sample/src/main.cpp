@@ -39,12 +39,8 @@ int main(int argc, char** argv)
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 
-	std::string modelPath = "Models\\viking_room.obj";
-	std::string modelName = "viking_room.obj";
 	MeshComponent meshComp;
-	meshComp.mesh = &MeshLoader::Load("Models\\viking_room.obj", &app);
-	MeshComponent meshComp2;
-	meshComp2.mesh = &MeshLoader::Load("Models\\CUBE.obj", &app);
+
 	TransformComponent transform;
 	transform.SetPosition(glm::vec3(0, 0, 0));
 	transform.SetScale({ 2, 2, 2 });
@@ -80,11 +76,14 @@ int main(int argc, char** argv)
 	texture.texture = &TextureLoader::Load("Textures\\BaseTexture.png", &app);
 
 	glm::vec3 objPosition = { 0.0f, 0.0f, 0.0f };
-	glm::vec3 objScale	  = { 2.0f, 2.0f, 2.0f };
-	glm::vec3 objRotation = { glm::radians(-90.0f), 0.0f, 0.0f };
+	glm::vec3 objScale	  = { 1.0f, 1.0f, 1.0f };
+	glm::vec3 objRotation = { 0.0f, 0.0f, 0.0f };
 
 	auto  lastTime = std::chrono::high_resolution_clock::now();
 	float angle = 0.0f;
+
+	std::string modelPath;
+	std::string modelName;
 
 	do
 	{
@@ -107,22 +106,13 @@ int main(int argc, char** argv)
 		// ImGui
 		imguiCore.BeginFrame(KGR::_ImGui::ContextTarget::Engine);
 		{
-			ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_FirstUseEver);
-			ImGui::SetNextWindowSize(ImVec2(360, 150), ImGuiCond_FirstUseEver);
-			ImGui::Begin("Toto");
-
+			KGR::_ImGui::ImGuiCore::SetWindow({ 20, 20 }, { 360, 150 }, "Toto");
 			ImGui::Text("File : %s", modelName.c_str());
-			if (ImGui::Button("Load new.."))
+			if (imguiCore.IsButton(KGR::_ImGui::ButtonType::Load))
 			{
-				std::string newPath = KGR::_ImGui::ImGuiCore::OpenFile();
-				if (!newPath.empty())
+				if (imguiCore.LoadMesh(meshComp, modelPath, app))
 				{
-					app.GetDevice().Get().waitIdle();
-					MeshLoader::Unload(modelPath);
-					modelPath = newPath;
-					modelName = std::filesystem::path(modelPath).filename().string();
-					meshComp.mesh = &MeshLoader::Load(modelPath, &app);
-
+					modelName   = std::filesystem::path(modelPath).filename().string();
 					objPosition = { 0.0f, 0.0f, 0.0f };
 					objScale	= { 1.0f, 1.0f, 1.0f };
 					objRotation = { 0.0f, 0.0f, 0.0f };
@@ -145,9 +135,7 @@ int main(int argc, char** argv)
 		transform.SetRotation(objRotation);
 
 		app.RegisterCam(cam, camTransform);
-
 		app.RegisterRender(meshComp, transform, texture);
-		app.RegisterRender(meshComp2, transform2, texture);
 
 		app.RegisterLight(lComp, lTransform);
 		app.RegisterLight(lComp2, lTransform2);
