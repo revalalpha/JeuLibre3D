@@ -5,7 +5,7 @@
 // then correct the reflected forward to match the nextForward direction, 
 // and finally apply the same correction to the reflected up to maintain the orthogonality of the frame
 // The result is a new frame that is smoothly transitioned from the previous frame to the next forward direction, while keeping the up vector as consistent as possible with the previous frame
-KGR::CurveFrame KGR::Frenet::MovingFrame(const CurveFrame& previousFrame, const glm::vec3& from, const glm::vec3& to,
+KGR::CurveFrame KGR::RMF::MovingFrame(const CurveFrame& previousFrame, const glm::vec3& from, const glm::vec3& to,
 										 const glm::vec3& nextForward)
 {
 	// Obvious but we need to compute the segment direction to perform the reflection
@@ -39,7 +39,7 @@ KGR::CurveFrame KGR::Frenet::MovingFrame(const CurveFrame& previousFrame, const 
 // For the first and last points, we can simply take the direction to the next or previous point respectively
 // For the intermediate points, we can take the direction from the previous point to the next point to get a smoother estimate of the forward direction
 // The result is a vector of forward directions that can be used to build the Frenet frames along the curve
-std::vector<glm::vec3> KGR::Frenet::EstimateForwardDirs(const std::vector<glm::vec3>& points)
+std::vector<glm::vec3> KGR::RMF::EstimateForwardDirs(const std::vector<glm::vec3>& points)
 {
         const std::size_t pointCount = points.size();
 
@@ -66,7 +66,7 @@ std::vector<glm::vec3> KGR::Frenet::EstimateForwardDirs(const std::vector<glm::v
 // It first initializes the first frame using the first forward direction and an arbitrary up vector that is perpendicular to it
 // Then it iteratively builds the next frames using the MovingFrame function, which takes the previous frame, the current and next points, and the next forward direction to compute the next frame
 // The result is a vector of CurveFrame that contains the forward, up, and right vectors for each point along the curve
-std::vector<KGR::CurveFrame> KGR::Frenet::BuildFrames(const std::vector<glm::vec3>& points,
+std::vector<KGR::CurveFrame> KGR::RMF::BuildFrames(const std::vector<glm::vec3>& points,
                                              const std::vector<glm::vec3>& forwardDirs)
 {
         const std::size_t pointCount = points.size();

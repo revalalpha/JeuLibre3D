@@ -12,7 +12,7 @@ namespace KGR
         glm::vec3 right;
     };
 
-    namespace Frenet
+    namespace RMF
     {
         CurveFrame MovingFrame(const CurveFrame& previousFrame,
             const glm::vec3& from,
