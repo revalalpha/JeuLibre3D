@@ -17,6 +17,27 @@ struct ControllerComponent
 };
 
 
+struct IAComp
+{
+	
+	void UpdateTarget(const glm::vec3& target)
+	{
+		m_target = target;
+	}
+	glm::vec3  Update(float dt,const  glm::vec3& pos)
+	{
+		glm::vec3 result = pos;
+		glm::vec3 dir = glm::normalize(m_target - pos);
+		result += dir * dt;
+		return result;
+	}
+
+private :
+	glm::vec3 m_target;
+};
+
+
+
 
 int main(int argc, char** argv)
 {
@@ -51,6 +72,26 @@ int main(int argc, char** argv)
 		registry.AddComponents<MeshComponent, TransformComponent, TextureComponent,ControllerComponent>(mesh, std::move(meshComp), std::move(transform), std::move(texture),std::move(ControllerComponent{}));
 	}
 
+	// IA
+	{
+
+		auto ia = registry.CreateEntity();
+		MeshComponent meshComp;
+		meshComp.mesh = &MeshLoader::Load("Models\\CUBE.obj", window.App());
+		TransformComponent transform;
+		transform.SetPosition({ 10, 0, 10}); // starting pos
+		TextureComponent texture;
+		texture.SetSize(meshComp.mesh->GetSubMeshesCount());
+		for (int i = 0; i < meshComp.mesh->GetSubMeshesCount(); ++i)
+			texture.AddTexture(i, &TextureLoader::Load("Textures\\BaseTexture.png", window.App()));
+		IAComp iaC;
+		iaC.UpdateTarget({ 0,0,0 }); //player pos
+
+		registry.AddComponents<MeshComponent, TransformComponent, TextureComponent, IAComp>(ia, std::move(meshComp), std::move(transform), std::move(texture), std::move(iaC));
+
+	}
+
+
 	auto colorTransform = [](const glm::vec3& color)
 	{
 			glm::vec3 result;
@@ -68,31 +109,29 @@ int main(int argc, char** argv)
 		lTransform.LookAt({ 0,-1,0});
 		registry.AddComponents<LightComponent<LightData::Type::Directional>, TransformComponent>(light, std::move(lComp), std::move(lTransform));
 	}
-	
-	
+
+
+
 
 
 
 	do
 	{
-		// event
+		/// EVENT PAS TOUCHE
 		KGR::RenderWindow::PollEvent();
 		window.Update();
-		//Update
-		static auto lastTime = std::chrono::high_resolution_clock::now();
-		static float angle = 0.0f;
-		const float rotationSpeed = 1.0f;
+		// EVENT
+		
 
+
+		//Update PAS TOUCHE
+		static auto lastTime = std::chrono::high_resolution_clock::now();
 		auto currentTime = std::chrono::high_resolution_clock::now();
 		float deltaTime = std::chrono::duration<float>(currentTime - lastTime).count();
 		lastTime = currentTime;
+		// Update
 
-		angle += deltaTime * rotationSpeed;
-
-		float radius = 5.0f;
-		float camX = std::cos(angle) * radius;
-		float camY = 5.0f;
-		float camZ = std::sin(angle) * radius;
+		
 		{
 			auto es = registry.GetAllComponentsView<ControllerComponent, TransformComponent,CameraComponent>();
 			auto* inputData = window.GetInputManager();
@@ -115,14 +154,29 @@ int main(int argc, char** argv)
 				auto delta = inputData->GetMouseDelta();
 				transform.RotateEuler<RotData::Orientation::Pitch>(-glm::radians(delta.y * deltaTime * 100));
 				transform.RotateEuler<RotData::Orientation::Yaw>(-glm::radians(delta.x * deltaTime * 100));
-
-				std::cout << delta.x << "\n";
-
 				transform.Translate(dir * deltaTime);
 			}
 		}
 
+		// UpdateIa
+		{
 
+			auto es = registry.GetAllComponentsView<IAComp,TransformComponent>();
+			for (auto& e : es)
+			{
+				auto& transform = registry.GetComponent<TransformComponent>(e);
+				auto& ia = registry.GetComponent<IAComp>(e);
+
+				auto pos = ia.Update(deltaTime, transform.GetPosition());
+				transform.SetPosition(pos);
+
+				std::cout << pos.x << "\n";
+			}
+
+		}
+
+
+	/// RENDER PAS TOUCHE 
 
 	{	
 		auto es = registry.GetAllComponentsView<CameraComponent, TransformComponent>();
@@ -130,15 +184,15 @@ int main(int argc, char** argv)
 			throw std::runtime_error("need one and one cam");
 		for (auto& e : es)
 		{
-			//registry.GetComponent<TransformComponent>(e).SetPosition({ camX, camY, camZ });
-			//registry.GetComponent<TransformComponent>(e).LookAt({ 0.0f, 0.0f, 0.0f });
-			registry.GetComponent<CameraComponent>(e).UpdateCamera(registry.GetComponent<TransformComponent>(e).GetFullTransform());
+			auto& cam = registry.GetComponent<CameraComponent>(e);
+			cam.UpdateCamera(registry.GetComponent<TransformComponent>(e).GetFullTransform());
+			if (cam.GetWidth() != window.GetSize().x || cam.GetHeight() != window.GetSize().y)
+			{
+				cam.SetAspect(window.GetSize().x, window.GetSize().y);
+			}
 			window.RegisterCam(registry.GetComponent<CameraComponent>(e), registry.GetComponent<TransformComponent>(e));
 		}
 	}
-
-
-		// Render Mesh
 	{
 		auto es = registry.GetAllComponentsView<MeshComponent, TransformComponent,TextureComponent>();
 
