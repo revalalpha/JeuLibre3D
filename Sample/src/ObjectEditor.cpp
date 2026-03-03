@@ -1,4 +1,5 @@
 #include "ObjectEditor.h"
+#include "Core/ManagerImple.h"
 #include <filesystem>
 
 bool ObjectEditor::Render()
@@ -65,4 +66,27 @@ bool ObjectEditor::Render()
 	ImGui::End();
 
 	return open;
+}
+
+void ObjectEditor::DeleteSelected(std::vector<ObjectState>& objects, int& selectedObj)
+{
+	m_App.GetDevice().Get().waitIdle();
+
+	if (!objects[selectedObj].modelPath.empty())
+	{
+		bool sharedMesh = false;
+		for (int j = 0; j < static_cast<int>(objects.size()); j++)
+		{
+			if (j != selectedObj && objects[j].modelPath == objects[selectedObj].modelPath)
+			{
+				sharedMesh = true;
+				break;
+			}
+		}
+		if (!sharedMesh)
+			MeshLoader::Unload(objects[selectedObj].modelPath);
+	}
+
+	objects.erase(objects.begin() + selectedObj);
+	selectedObj = -1;
 }

@@ -119,15 +119,7 @@ int main(int argc, char** argv)
 				bool stillOpen = objEditor.Render();
 
 				if (objEditor.DeleteObject())
-				{
-					app.GetDevice().Get().waitIdle();
-
-					if (!objects[selectedObj].modelPath.empty())
-						MeshLoader::Unload(objects[selectedObj].modelPath);
-
-					objects.erase(objects.begin() + selectedObj);
-					selectedObj = -1;
-				}
+					objEditor.DeleteSelected(objects, selectedObj);
 				else if (!stillOpen)
 					selectedObj = -1;
 			}

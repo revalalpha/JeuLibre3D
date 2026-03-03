@@ -14,6 +14,7 @@ public:
 	void SetTarget(ObjectState* obj) { m_Obj = obj; }
 	bool Render();
 	bool DeleteObject() const { return m_Delete; }
+	void DeleteSelected(std::vector<ObjectState>& objects, int& selectedObj);
 
 private:
 	KGR::_ImGui::ImGuiCore&   m_ImGui;
