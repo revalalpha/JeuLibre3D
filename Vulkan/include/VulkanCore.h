@@ -101,6 +101,9 @@ namespace KGR
 			DescriptorPool& GetDescriptorPool();
 			const DescriptorPool& GetDescriptorPool() const;
 
+			DebugRenderer& GetDebugRenderer();
+			const DebugRenderer& GetDebugRenderer() const;
+
 			void RegisterLight(const LightData& light);
 			void RegisterCam(const glm::mat4& model,const glm::mat4& view , const glm::mat4& proj);
 			void RegisterRender(Mesh& mesh,const  glm::mat4& model,std::vector<Texture*>& texture);
@@ -139,6 +142,7 @@ namespace KGR
 			DescriptorSet descriptorSets;
 			Pipeline               graphicsPipeline;
 			Pipeline               linePipeLine;
+			DebugRenderer          debugRenderer;
 
 			CommandBuffers         commandBuffers;
 

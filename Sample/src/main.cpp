@@ -14,6 +14,7 @@
 #include "ECS/Registry.h"
 #include "ECS/Entities.h"
 #include "Tools/Random.h"
+#include "DebugRenderer.h"
 
 #include "GameFiles.h"
 
@@ -33,8 +34,6 @@ struct TakeDamageComponent
 
 int main(int argc, char** argv)
 {
-
-
 	std::filesystem::path exePath = argv[0];
 	std::filesystem::path projectRoot = exePath.parent_path().parent_path().parent_path().parent_path().parent_path();
 	KGR::RenderWindow::Init();
@@ -42,27 +41,19 @@ int main(int argc, char** argv)
 	window.GetInputManager()->SetMode(GLFW_CURSOR_DISABLED);
 	using ecsType = KGR::ECS::Registry<KGR::ECS::Entity::_64, 100>;
 	auto registry = ecsType{};
-	//Cam
-	/*{
-	auto cam = registry.CreateEntity();
-	CameraComponent camComp = CameraComponent::Create(45.0f, static_cast<float>(window.GetSize().x), static_cast<float>(window.GetSize().y), 0.01f, 1000.0f, CameraComponent::Type::Perspective);
-	TransformComponent transform;
-	transform.SetPosition({ 0,3,5 });
-	registry.AddComponents<CameraComponent, TransformComponent, ControllerComponent>(cam, std::move(camComp), std::move(transform),std::move(ControllerComponent{}));
-	}*/
 
-	// entity
-	{
-		auto mesh = registry.CreateEntity();
-		MeshComponent meshComp;
-		meshComp.mesh = &MeshLoader::Load("Models\\briet_claire_decorsfantasy_grpB.obj", window.App());
-		TransformComponent transform;
-		TextureComponent texture;
-		texture.SetSize(meshComp.mesh->GetSubMeshesCount());
-		for (int i = 0; i < meshComp.mesh->GetSubMeshesCount(); ++i)
-			texture.AddTexture(i, &TextureLoader::Load("Textures\\BaseTexture.png", window.App()));
-		registry.AddComponents<MeshComponent, TransformComponent, TextureComponent, ControllerComponent>(mesh, std::move(meshComp), std::move(transform), std::move(texture), std::move(ControllerComponent{}));
-	}
+	//// entity
+	//{
+	//	auto mesh = registry.CreateEntity();
+	//	MeshComponent meshComp;
+	//	meshComp.mesh = &MeshLoader::Load("Models\\briet_claire_decorsfantasy_grpB.obj", window.App());
+	//	TransformComponent transform;
+	//	TextureComponent texture;
+	//	texture.SetSize(meshComp.mesh->GetSubMeshesCount());
+	//	for (int i = 0; i < meshComp.mesh->GetSubMeshesCount(); ++i)
+	//		texture.AddTexture(i, &TextureLoader::Load("Textures\\BaseTexture.png", window.App()));
+	//	registry.AddComponents<MeshComponent, TransformComponent, TextureComponent, ControllerComponent>(mesh, std::move(meshComp), std::move(transform), std::move(texture), std::move(ControllerComponent{}));
+	//}
 
 	//Player
 	{
@@ -79,35 +70,21 @@ int main(int argc, char** argv)
 		TransformComponent camTransform;
 		camTransform.SetPosition({ 0,3,5 });
 
+		LivingComponent playerLife;
+		playerLife.health = 5.0f;
+		playerLife.isAlive = true;
+
 		//Texture
 		TextureComponent texture;
 		texture.SetSize(meshComp.mesh->GetSubMeshesCount());
 		for (int i = 0; i < meshComp.mesh->GetSubMeshesCount(); ++i)
 			texture.AddTexture(i, &TextureLoader::Load("Textures\\BaseTexture.png", window.App()));
 
-		registry.AddComponents<MeshComponent, CameraComponent, TransformComponent, TextureComponent, ControllerComponent, PlayerComponent, KGR::GameLib::WeaponComponent >
-			(player, std::move(meshComp), std::move(camComp), std::move(camTransform), std::move(texture), ControllerComponent{}, PlayerComponent{}, KGR::GameLib::WeaponComponent{});
+		registry.AddComponents<MeshComponent, CameraComponent, TransformComponent, TextureComponent, ControllerComponent,
+			PlayerComponent, KGR::GameLib::WeaponComponent, LivingComponent>
+			(player, std::move(meshComp), std::move(camComp), std::move(camTransform), std::move(texture), ControllerComponent{},
+				PlayerComponent{}, KGR::GameLib::WeaponComponent{}, std::move(playerLife));
 	}
-
-	////IA
-	//{
-
-	//	auto ia = registry.CreateEntity();
-	//	MeshComponent meshComp;
-	//	meshComp.mesh = &MeshLoader::Load("Models\\CUBE.obj", window.App());
-	//	TransformComponent transform;
-	//	transform.SetPosition({ 10, 0, 10}); // starting pos
-	//	TextureComponent texture;
-	//	texture.SetSize(meshComp.mesh->GetSubMeshesCount());
-	//	for (int i = 0; i < meshComp.mesh->GetSubMeshesCount(); ++i)
-	//		texture.AddTexture(i, &TextureLoader::Load("Textures\\BaseTexture.png", window.App()));
-	//	IAComp iaC;
-	//	iaC.UpdateTarget({ 0,0,0 }); //player pos
-
-	//	registry.AddComponents<MeshComponent, TransformComponent, TextureComponent, IAComp>(ia, std::move(meshComp), std::move(transform), std::move(texture), std::move(iaC));
-
-	//}
-
 
 	auto colorTransform = [](const glm::vec3& color)
 		{
@@ -125,42 +102,69 @@ int main(int argc, char** argv)
 		registry.AddComponents<LightComponent<LightData::Type::Directional>, TransformComponent>(light, std::move(lComp), std::move(lTransform));
 	}
 
-	//std::vector<glm::vec3> points{
+	std::vector<glm::vec3> points
+	{
+		//Loop
+		{ -3.0f, 0.0f,  4.0f},
+		{  0.0f, 0.0f,  0.0f},
+		{  3.0f, 0.0f,  4.0f},
+		{  6.0f, 0.0f,  0.0f},
+		{  3.0f, 0.0f, -4.0f},
+		{  0.0f, 0.0f,  0.0f},
+		{ -3.0f, 0.0f,  4.0f},
+		{ -6.0f, 0.0f,  0.0f},
+		{ -3.0f, 0.0f, -4.0f},
+		{  0.0f, 0.0f,  0.0f},
+		{  3.0f, 0.0f,  4.0f},
+		{  6.0f, 0.0f,  0.0f},
+		{  3.0f, 0.0f, -4.0f},
+		{  0.0f, 0.0f,  0.0f},
+		{ -3.0f, 0.0f, -4.0f},
+		{ -6.0f, 0.0f,  0.0f},
+		{ -3.0f, 0.0f,  4.0f},
+		{  0.0f, 0.0f,  0.0f},
+		{  3.0f, 0.0f,  4.0f},
+	};
 
+	HermitCurve curve = HermitCurve::FromPoints(points, 0);
 
-	//	// --- boucle principale ---
-	//	{  0.0f,  6.0f,  0.0f },   // P1
-	//	{ -5.5f,  4.0f, -2.0f },   // P2
-	//	{ -6.0f, -1.0f, -3.0f },   // P3
-	//	{ -2.0f, -5.5f, -1.0f },   // P4
-	//	{  3.5f, -4.5f,  2.5f },   // P5
-	//	{  6.5f, -1.0f,  3.0f },   // P6
-	//	{  6.0f,  2.5f,  2.0f },   // P7
+	const float rmfStep = 0.001f;
+	const int rmfSampleCount = static_cast<int>(curve.MaxT() / rmfStep) + 1;
 
-	//};
+	std::vector<glm::vec3> rmfPoints;
+	rmfPoints.reserve(rmfSampleCount);
 
-	//HermitCurve curve = HermitCurve::FromPoints(points, 0);
+	for (int i = 0; i < rmfSampleCount; ++i)
+		rmfPoints.push_back(curve.Compute(i * rmfStep));
 
-	//const float rmfStep = 0.001f;
-	//const int rmfSampleCount = static_cast<int>(curve.MaxT() / rmfStep) + 1;
+	auto rmfForwardDirs = KGR::RMF::EstimateForwardDirs(rmfPoints);
+	auto rmfFrames = KGR::RMF::BuildFrames(rmfPoints, rmfForwardDirs);
 
-	//std::vector<glm::vec3> rmfPoints;
-	//rmfPoints.reserve(rmfSampleCount);
+	static float curvesTest = 0.0f;
 
-	//for (int i = 0; i < rmfSampleCount; ++i)
-	//	rmfPoints.push_back(curve.Compute(i * rmfStep));
+	for (int i = 0; i < rmfPoints.size() - 1; ++i)
+		{
+		glm::vec3 p0 = rmfPoints[i];
+		glm::vec3 p1 = rmfPoints[i + 1];
+		glm::vec3 forward = rmfFrames[i].forward;
+		glm::vec3 up = rmfFrames[i].up;
+		glm::vec3 right = rmfFrames[i].right;
+		curvesTest += 0.01f;
+		if (curvesTest >= 1.0f)
+			curvesTest = 0.0f;
+		window.App()->GetDebugRenderer().DrawLine(p0, p1, { 1,0,0 });
+		window.App()->GetDebugRenderer().DrawLine(p0, p0 + forward, { 0,1,0 });
+		window.App()->GetDebugRenderer().DrawLine(p0, p0 + up, { 0,0,1 });
+		window.App()->GetDebugRenderer().DrawLine(p0, p0 + right, { 1,1,0 });
+	}
 
-	//auto rmfForwardDirs = KGR::RMF::EstimateForwardDirs(rmfPoints);
-	//auto rmfFrames = KGR::RMF::BuildFrames(rmfPoints, rmfForwardDirs);
-
-	//static float curvesTest = 0.0f;
 	do
 	{
 		/// EVENT PAS TOUCHE
 		KGR::RenderWindow::PollEvent();
 		window.Update();
-		// EVENT
-
+		
+		//Update Events
 
 
 		//Update PAS TOUCHE
@@ -235,12 +239,20 @@ int main(int argc, char** argv)
 						{
 							float sx = KGR::Tools::Random().getRandomNumber(-weaponData.spread, weaponData.spread);
 							float sy = KGR::Tools::Random().getRandomNumber(-weaponData.spread, weaponData.spread);
-
+							forward = glm::normalize(forward + transform.GetLocalAxe<RotData::Dir::Right>() * sx + transform.GetLocalAxe<RotData::Dir::Up>() * sy);
 						}
 
 						if (weapon.current == KGR::GameLib::WeaponType::Shotgun)
 							for (int i = 0; i < weaponData.maxAmmo; ++i)
-								weapon.CreateBullet(registry, window, transform.GetPosition(), forward);
+							{
+								glm::vec3 spreadDir = forward;
+
+								float sx = KGR::Tools::Random().getRandomNumber(-weaponData.spread, weaponData.spread);
+								float sy = KGR::Tools::Random().getRandomNumber(-weaponData.spread, weaponData.spread);
+								spreadDir = glm::normalize(spreadDir + transform.GetLocalAxe<RotData::Dir::Right>() * sx + transform.GetLocalAxe<RotData::Dir::Up>() * sy);
+
+								weapon.CreateBullet(registry, window, transform.GetPosition(), spreadDir);
+							}
 						else
 							weapon.CreateBullet(registry, window, transform.GetPosition(), forward);
 					}
@@ -330,7 +342,18 @@ int main(int argc, char** argv)
 				if (dist <= enemy.attackRange && enemy.timeSinceLastAttack <= 0.0f)
 				{
 					enemy.timeSinceLastAttack = enemy.attackCooldown;
-					std::cout << "Enemy attacks player!\n";
+					auto players = registry.GetAllComponentsView<PlayerComponent, LivingComponent>();
+					for (auto p : players)
+					{
+						auto& life = registry.GetComponent<LivingComponent>(p);
+						life.health -= enemy.damage;
+
+						if (life.health <= 0.0f)
+						{
+							life.isAlive = false;
+							std::cout << "Player Dead\n";
+						}
+					}
 				}
 
 				if(enemy.health <= 0.0f)
@@ -339,24 +362,45 @@ int main(int argc, char** argv)
 					std::cout << "Enemy defeated!\n";
 				}
 			}
-
-
 		}
 
-		//{
-		//	auto es = registry.GetAllComponentsView<ControllerComponent, TransformComponent, MeshComponent, TransformComponent>();
-		//	for (auto& e : es)
-		//	{
-		//		auto& transform = registry.GetComponent<TransformComponent>(e);
-		//		transform.SetPosition(curve.Compute(curvesTest));
-		//		int frameIndex = glm::clamp(static_cast<int>(curvesTest / rmfStep), 0, static_cast<int>(rmfFrames.size() - 1));
-		//		/*transform.SetOrientation(glm::quatLookAt(rmfFrames[frameIndex].forward, rmfFrames[frameIndex].up));*/
-		//	}
-		//}
+		bool gameOver = false;
+		//Is player dead
+		{
+			auto view = registry.GetAllComponentsView<PlayerComponent, LivingComponent>();
+			for (auto& e : view)
+			{
+				auto& life = registry.GetComponent<LivingComponent>(e);
+				if (!life.isAlive)
+				{
+					std::cout << "Game Over\n";
+					gameOver = true;
+				}
+			}
+		}
 
-		//curvesTest += 0.001f;
-		//if (curvesTest > curve.MaxT())
-		//	curvesTest = 0.0f;
+		//crash
+		if (gameOver)
+		{
+			window.Render({ 0.0f,0.0f,0.0f,1.0f });
+			continue;
+		}
+		
+		//Update curve follower
+		{
+			auto es = registry.GetAllComponentsView<ControllerComponent, TransformComponent, MeshComponent, TransformComponent>();
+			for (auto& e : es)
+			{
+				auto& transform = registry.GetComponent<TransformComponent>(e);
+				transform.SetPosition(curve.Compute(curvesTest));
+				int frameIndex = glm::clamp(static_cast<int>(curvesTest / rmfStep), 0, static_cast<int>(rmfFrames.size() - 1));
+				/*transform.SetOrientation(glm::quatLookAt(rmfFrames[frameIndex].forward, rmfFrames[frameIndex].up));*/
+			}
+		}
+
+		curvesTest += 0.001f;
+		if (curvesTest > curve.MaxT())
+			curvesTest = 0.0f;
 
 		{
 			auto es = registry.GetAllComponentsView<CameraComponent, TransformComponent>();
@@ -371,6 +415,17 @@ int main(int argc, char** argv)
 			}
 		}
 
+		//TODO:
+		// - following the player with the camera
+		// - doing events where enemies spawn at specific times or when the player enters specific areas
+		// - seing the curve path with debug draw
+		// - doing the speadshot of the shotgun with multiple bullets with a random spread
+		// - Collision detection between bullets and enemies and ennemies and player
+		// - doing a health system for the player and the enemies and player can die and freeze the game when he dies
+		// - doing a UI for ammos and health with ImGui or with a custom UI system
+		// - doing a main menu and a game over screen
+		// - add a new enemy mesh 
+		// - finih 
 
 		// Render Mesh
 		{
