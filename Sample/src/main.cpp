@@ -1,5 +1,7 @@
 #include <filesystem>
 #include <iostream>
+
+#include "CollisionComponent.h"
 #include "Core/CameraComponent.h"
 #include "VulkanCore.h"
 #include "_GLFW.h"
@@ -48,6 +50,9 @@ int main(int argc, char** argv)
 		texture.SetSize(meshComp.mesh->GetSubMeshesCount());
 		for (int i = 0; i < meshComp.mesh->GetSubMeshesCount(); ++i)
 			texture.AddTexture(i, &TextureLoader::Load("Textures\\BaseTexture.png", window.App()));
+		CollisionComp collider;
+		collider.collider = &ColliderManager::Load("test",meshComp.mesh);
+
 		registry.AddComponents<MeshComponent, TransformComponent, TextureComponent, ControllerComponent>(mesh, std::move(meshComp), std::move(transform), std::move(texture), std::move(ControllerComponent{}));
 	}
 
@@ -66,21 +71,21 @@ int main(int argc, char** argv)
 		lTransform.LookAt({ 0,-1,0 });
 		registry.AddComponents<LightComponent<LightData::Type::Directional>, TransformComponent>(light, std::move(lComp), std::move(lTransform));
 	}
-
 	std::vector<glm::vec3> points{
-
-
-		// --- boucle principale ---
-		{  0.0f,  6.0f,  0.0f },   // P1
-		{ -5.5f,  4.0f, -2.0f },   // P2
-		{ -6.0f, -1.0f, -3.0f },   // P3
-		{ -2.0f, -5.5f, -1.0f },   // P4
-		{  3.5f, -4.5f,  2.5f },   // P5
-		{  6.5f, -1.0f,  3.0f },   // P6
-		{  6.0f,  2.5f,  2.0f },   // P7
-
+	{  0.0f, 0.0f,  6.0f },   // départ
+	{  3.5f, 0.0f,  5.0f },
+	{  6.0f, 0.0f,  2.5f },
+	{  6.5f, 0.0f,  0.0f },
+	{  6.0f, 0.0f, -2.5f },
+	{  3.5f, 0.0f, -5.0f },
+	{  0.0f, 0.0f, -6.0f },
+	{ -3.5f, 0.0f, -5.0f },
+	{ -6.0f, 0.0f, -2.5f },
+	{ -6.5f, 0.0f,  0.0f },
+	{ -6.0f, 0.0f,  2.5f },
+	{ -3.5f, 0.0f,  5.0f },
+	{  0.0f, 0.0f,  6.0f }    // retour au départ pour boucler
 	};
-
 	HermitCurve curve = HermitCurve::FromPoints(points, 0);
 
 	const float rmfStep = 0.001f;
