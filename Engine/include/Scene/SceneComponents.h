@@ -14,6 +14,6 @@ struct NameComponent
 
 struct HierarchyComponent
 {
-	SceneEntity m_parent	 = NullEntity;
+	SceneEntity m_parent = NullEntity;
 	std::vector<SceneEntity> m_children;
 };
