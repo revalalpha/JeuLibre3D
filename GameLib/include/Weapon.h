@@ -67,6 +67,8 @@ namespace KGR
 			void CreateBullet(Registry& registry, KGR::RenderWindow& window, const glm::vec3& position, const glm::vec3& direction);
 			void StartReload();
 			void UpdateReload(float dt);
+			//Get weapon name for HUD
+			std::string GetCurrentWeaponName() const;
 
 			/*void Shoot();
 			void Reload();*/

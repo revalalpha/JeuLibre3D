@@ -193,30 +193,16 @@ int main(int argc, char** argv)
 		lastTime = currentTime;
 		// Update
 
-		//Update player movement
+		//Camera control
 		{
 			auto es = registry.GetAllComponentsView<ControllerComponent, TransformComponent, CameraComponent>();
 			auto* inputData = window.GetInputManager();
 			for (auto& e : es)
 			{
 				auto& transform = registry.GetComponent<TransformComponent>(e);
-				glm::vec3 dir = { 0.0f,0.0f,0.0f };
-				if (inputData->IsKeyDown(KGR::Key::Z))
-					dir.z = -1;
-				if (inputData->IsKeyDown(KGR::Key::S))
-					dir.z = 1;
-				if (inputData->IsKeyDown(KGR::Key::Q))
-					dir.x = -1;
-				if (inputData->IsKeyDown(KGR::Key::D))
-					dir.x = 1;
-				if (inputData->IsKeyDown(KGR::SpecialKey::Space))
-					dir.y = 1;
-				if (inputData->IsKeyDown(KGR::SpecialKey::Shift))
-					dir.y = -1;
 				auto delta = inputData->GetMouseDelta();
 				transform.RotateEuler<RotData::Orientation::Pitch>(-glm::radians(delta.y * deltaTime * 200));
 				transform.RotateEuler<RotData::Orientation::Yaw>(-glm::radians(delta.x * deltaTime * 200));
-				transform.Translate(dir * deltaTime);
 			}
 		}
 		
@@ -254,12 +240,6 @@ int main(int argc, char** argv)
 						weapon.cooldown = weaponData.fireRate;
 						weapon.currentAmmo--;
 						glm::vec3 forward = transform.GetLocalAxe<RotData::Dir::Forward>();
-						if (weaponData.spread > 0.0f)
-						{
-							float sx = KGR::Tools::Random().getRandomNumber(-weaponData.spread, weaponData.spread);
-							float sy = KGR::Tools::Random().getRandomNumber(-weaponData.spread, weaponData.spread);
-							forward = glm::normalize(forward + transform.GetLocalAxe<RotData::Dir::Right>() * sx + transform.GetLocalAxe<RotData::Dir::Up>() * sy);
-						}
 
 						if (weapon.current == KGR::GameLib::WeaponType::Shotgun)
 							for (int i = 0; i < weaponData.maxAmmo; ++i)
@@ -330,10 +310,6 @@ int main(int argc, char** argv)
 			}
 		}
 
-		// UpdateIa
-		/*static float spawnTimer = 0.0f;
-		spawnTimer -= deltaTime;*/
-
 		//Player pos
 		glm::vec3 playerPos{ 0.0f };
 		{
@@ -344,16 +320,6 @@ int main(int argc, char** argv)
 				break;
 			}
 		}
-
-		////Spawn enemy
-		//if (spawnTimer <= 0.0f)
-		//{
-		//	spawnTimer = 5.0f;
-
-		//	KGR::GameLib::AIComponent ai;
-		//	ai.SpawnEnemy(registry, window, playerPos);
-		//}
-
 
 		//Wave manager
 		if (!waveManager.isWaveActive && waveManager.currentWave < waveManager.wavePositions.size())
@@ -482,9 +448,11 @@ int main(int argc, char** argv)
 		}
 
 		if (!waveManager.platformPaused)
+		{
 			curvesTest += 0.001f;
-		if (curvesTest > curve.MaxT())
-			curvesTest = 0.0f;
+			if (curvesTest > curve.MaxT())
+				curvesTest = 0.0f;
+		}
 
 		{
 			auto es = registry.GetAllComponentsView<CameraComponent, TransformComponent>();

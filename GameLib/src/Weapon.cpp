@@ -43,3 +43,18 @@ void KGR::GameLib::WeaponComponent::UpdateReload(float dt)
 		currentAmmo = GetCurrentWeaponData().maxAmmo;
 	}
 }
+
+std::string KGR::GameLib::WeaponComponent::GetCurrentWeaponName() const
+{
+	switch (current)
+	{
+	case WeaponType::Shotgun:
+		return "Shotgun";
+	case WeaponType::Auto:
+		return "Auto Rifle";
+	case WeaponType::Sniper:
+		return "Sniper Rifle";
+	default:
+		return "Unknown";
+	}
+}	
