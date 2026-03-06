@@ -53,7 +53,7 @@ namespace KGR
 		{
 			WeaponType current = WeaponType::Auto;
 			WeaponData shotgun{ 50.0f, 1.0f, 15.0f, 0.15f, 8, 2.0f };
-			WeaponData autoRifle{ 5.0f, 0.2f, 30.0f, 0.0f, 30, 1.5f };
+			WeaponData autoRifle{ 5.0f, 0.2f, 30.0f, 0.05f, 30, 1.5f };
 			WeaponData sniper{ 200.0f, 1.5f, 100.0f, 0.0f, 5, 3.0f };
 
 			float cooldown = 0.0f;
