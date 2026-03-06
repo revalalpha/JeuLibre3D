@@ -85,7 +85,7 @@ int main(int argc, char** argv)
 
 		//Transform
 		TransformComponent camTransform;
-		camTransform.SetPosition({ 0,3,5 });
+		/*camTransform.SetPosition({ 0,3,5 });*/
 
 		LivingComponent playerLife;
 		playerLife.health = 5.0f;
