@@ -32,7 +32,7 @@ int main(int argc, char** argv)
 		TextureComponent text;
 		text.SetSize(mesh.mesh->GetSubMeshesCount());
 		for (int i = 0; i < mesh.mesh->GetSubMeshesCount(); ++i)
-			text.AddTexture(i, &TextureLoader::Load("Textures/BaseTexture.png", window->App()));
+			text.AddTexture(i, &TextureLoader::Load("Textures/viking_room.png", window->App()));
 
 		TransformComponent transform;
 		transform.SetPosition({ 0,0,0 });
@@ -44,9 +44,9 @@ int main(int argc, char** argv)
 
 	{
 		
-		LightComponent<LightData::Type::Spot> lc = LightComponent<LightData::Type::Spot>::Create({ 1,1,1 }, { 1,1,1 }, 10.0f,100.0f,glm::radians(5.0f),0.1f);
+		LightComponent<LightData::Type::Spot> lc = LightComponent<LightData::Type::Spot>::Create({ 1,0,1 }, { 1,1,1 }, 10.0f,100.0f,glm::radians(5.0f),0.15f);
 		TransformComponent transform;
-		transform.SetPosition({ 0,3,0 });
+		transform.SetPosition({ 0,5,0 });
 		transform.LookAtDir({ 0,-1,0 });
 		auto e = registry.CreateEntity();
 		registry.AddComponents(e, std::move(lc), std::move(transform));
