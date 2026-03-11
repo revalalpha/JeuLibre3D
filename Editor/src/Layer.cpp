@@ -9,7 +9,6 @@ namespace KGR::Editor
     {
         ImGuiStyle& style = ImGui::GetStyle();
 
-        // Geometry — tighter, flatter, closer to UE5
         style.WindowPadding = ImVec2(8.0f, 6.0f);
         style.FramePadding = ImVec2(6.0f, 3.0f);
         style.ItemSpacing = ImVec2(8.0f, 4.0f);
@@ -17,7 +16,6 @@ namespace KGR::Editor
         style.ScrollbarSize = 12.0f;
         style.GrabMinSize = 10.0f;
 
-        // Sharp edges like UE
         style.WindowRounding = 0.0f;
         style.FrameRounding = 2.0f;
         style.ScrollbarRounding = 2.0f;
@@ -34,7 +32,6 @@ namespace KGR::Editor
 
         ImVec4* c = style.Colors;
 
-        // Base dark palette — UE uses near-black (#1a1a1a range)
         c[ImGuiCol_WindowBg] = ImVec4(0.13f, 0.13f, 0.13f, 1.00f);
         c[ImGuiCol_ChildBg] = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
         c[ImGuiCol_PopupBg] = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
@@ -44,7 +41,7 @@ namespace KGR::Editor
         c[ImGuiCol_TitleBgActive] = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
         c[ImGuiCol_TitleBgCollapsed] = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
 
-        // Tabs — UE uses a subtle highlight on the active tab
+        // Tabs
         c[ImGuiCol_Tab] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
         c[ImGuiCol_TabHovered] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
         c[ImGuiCol_TabActive] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
@@ -63,12 +60,12 @@ namespace KGR::Editor
         c[ImGuiCol_HeaderHovered] = ImVec4(0.30f, 0.30f, 0.30f, 1.00f);
         c[ImGuiCol_HeaderActive] = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
 
-        // Buttons — UE uses a flat dark grey, not the default blue
+        // Buttons
         c[ImGuiCol_Button] = ImVec4(0.26f, 0.26f, 0.26f, 1.00f);
         c[ImGuiCol_ButtonHovered] = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
         c[ImGuiCol_ButtonActive] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
 
-        // Accent colour for sliders, checkboxes, drag fields — UE orange
+        // Accent colour for sliders, checkboxes, drag fields
         c[ImGuiCol_SliderGrab] = ImVec4(0.80f, 0.45f, 0.10f, 1.00f);
         c[ImGuiCol_SliderGrabActive] = ImVec4(1.00f, 0.60f, 0.15f, 1.00f);
         c[ImGuiCol_CheckMark] = ImVec4(0.90f, 0.55f, 0.10f, 1.00f);
