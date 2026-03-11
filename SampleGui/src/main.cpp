@@ -19,6 +19,8 @@
 #include "HierarchyPanel.h"
 #include "InspectorPanel.h"
 #include "Toolbar.h"
+#include "../../Editor/include/Layer.h"
+#include "../../Editor/include/Offscreen.h"
 
 
 //----------------------------------------------------------------
@@ -182,6 +184,20 @@ int main(int argc, char** argv)
 	KGR::Editor::InspectorPanel inspectorPanel(&editorScene);
 	KGR::Editor::Viewport     viewport(imguiCore, app);
 
+	KGR::Editor::Layer::ApplyStyle();
+
+	VkDevice         vkDevice = static_cast<VkDevice>(*app.GetDevice().Get());
+	VkPhysicalDevice vkPhysDev = static_cast<VkPhysicalDevice>(*app.GetPhysicalDevice().Get());
+	VkDescriptorPool vkPool = static_cast<VkDescriptorPool>(*app.GetDescriptorPool().Get());
+	VkFormat         colorFormat = static_cast<VkFormat>(app.GetSwapChain().GetFormat().format);
+
+	KGR::Editor::Offscreen offscreen;
+	offscreen.Create(vkDevice, vkPhysDev, vkPool,
+		static_cast<uint32_t>(viewport.GetSize().x),
+		static_cast<uint32_t>(viewport.GetSize().y),
+		colorFormat);
+	viewport.SetSceneDescriptor(offscreen.GetDescriptorSet());
+
 	std::vector<glm::vec3> controlPoints =
 	{
 		{ -3.0f, 0.0f,  4.0f},
@@ -256,40 +272,49 @@ int main(int argc, char** argv)
 		imguiCore.BeginFrame(KGR::_ImGui::ContextTarget::Engine);
 		ImGuizmo::BeginFrame();
 		{
-			KGR::_ImGui::ImGuiCore::SetWindow({ 400, 20 }, { 500, 200 }, "KGR Engine");
-			ImGui::Text("Welcome to the KGR Engine !\n\nUse right click and ZQSD to move the camera.");
+			KGR::Editor::Layer::BeginDockspace();
 
-			if (imguiCore.IsButton(KGR::_ImGui::ButtonType::Object))
+			// --- Editor panels ---
+			toolbar.Render();
+			Scene* activeScene = toolbar.GetActiveScene();
+			hierarchyPanel.SetScene(activeScene);
+			inspectorPanel.SetScene(activeScene);
+
+			hierarchyPanel.Render();
+			SceneEntity selected = hierarchyPanel.GetSelectedEntity();
+			inspectorPanel.Render(selected);
+
+			// Resize handling: recreate offscreen target if viewport size changed
+			if (viewport.WasResizedThisFrame())
 			{
-				ObjectState& obj = objects.emplace_back();
-				obj.name = "Object " + std::to_string(objects.size() - 1);
-				obj.texture = baseTexture;
-				selectedObj = static_cast<int>(objects.size() - 1);
+				app.GetDevice().Get().waitIdle();
+				glm::vec2 newSize = viewport.GetSize();
+				offscreen.Resize(vkDevice, vkPhysDev, vkPool,
+					static_cast<uint32_t>(newSize.x),
+					static_cast<uint32_t>(newSize.y));
+				viewport.SetSceneDescriptor(offscreen.GetDescriptorSet());
+
+				cam = CameraComponent::Create(45.0f, newSize.x, newSize.y,
+					0.01f, 1000.0f, CameraComponent::Type::Perspective);
+				cam.UpdateCamera(camTransform.GetFullTransform());
+				imguiCore.SetCamera(&cam, &camTransform);
 			}
 
-			ImGui::Separator();
+			viewport.Render(selected, activeScene, &cam);
 
-			for (int i = 0; i < static_cast<int>(objects.size()); i++)
-				if (ImGui::Selectable(objects[i].name.c_str(), selectedObj == i))
-					selectedObj = i;
-
-			ImGui::End();
-
-			if (selectedObj >= 0 && selectedObj < static_cast<int>(objects.size()))
+			// Debug draw clipped to the viewport rect so lines don't bleed into panels
 			{
-				objEditor.SetTarget(&objects[selectedObj]);
+				glm::vec2 vpPos = viewport.GetPos();
+				glm::vec2 vpSize = viewport.GetSize();
 
-				bool stillOpen = objEditor.Render();
-
-				if (objEditor.DeleteObject())
-					objEditor.DeleteSelected(objects, selectedObj);
-				else if (!stillOpen)
-					selectedObj = -1;
-			}
-
-			{
 				debugDraw.BeginFrame(imguiCore.GetCam().GetView(), imguiCore.GetCam().GetProj(),
-					io.DisplaySize.x, io.DisplaySize.y);
+					vpSize.x, vpSize.y);
+
+				ImDrawList* dl = ImGui::GetBackgroundDrawList();
+				dl->PushClipRect(
+					ImVec2(vpPos.x, vpPos.y),
+					ImVec2(vpPos.x + vpSize.x, vpPos.y + vpSize.y),
+					true);
 
 				for (int i = 0; i < curveN - 1; ++i)
 					debugDraw.DrawLine(curvePoints[i], curvePoints[i + 1], IM_COL32(255, 255, 255, 255));
@@ -315,24 +340,47 @@ int main(int argc, char** argv)
 
 				debugDraw.DrawFrame(pos, interpFrame, axisLen * 2.5f, 3.5f);
 				debugDraw.DrawPoint(pos, 6.0f, IM_COL32(255, 255, 0, 255));
+
+				dl->PopClipRect();
 			}
 
+			// Floating debug windows
 			KGR::_ImGui::ImGuiCore::SetWindow({ 20, 300 }, { 250, 120 }, "RMF Debug");
 			ImGui::TextColored(ImVec4(0, 0, 1, 1), "Blue  = Forward");
 			ImGui::TextColored(ImVec4(0, 1, 0, 1), "Green = Up");
 			ImGui::TextColored(ImVec4(1, 0, 0, 1), "Red   = Right");
 			ImGui::End();
 
-			// --- Editor panels ---
-			toolbar.Render();
-			Scene* activeScene = toolbar.GetActiveScene();
-			hierarchyPanel.SetScene(activeScene);
-			inspectorPanel.SetScene(activeScene);
+			KGR::_ImGui::ImGuiCore::SetWindow({ 400, 20 }, { 500, 200 }, "KGR Engine");
+			ImGui::Text("Welcome to the KGR Engine !\n\nUse right click and ZQSD to move the camera.");
 
-			hierarchyPanel.Render();
-			SceneEntity selected = hierarchyPanel.GetSelectedEntity();
-			inspectorPanel.Render(selected);
-			viewport.Render(selected, activeScene, &cam);
+			if (imguiCore.IsButton(KGR::_ImGui::ButtonType::Object))
+			{
+				ObjectState& obj = objects.emplace_back();
+				obj.name = "Object " + std::to_string(objects.size() - 1);
+				obj.texture = baseTexture;
+				selectedObj = static_cast<int>(objects.size() - 1);
+			}
+
+			ImGui::Separator();
+
+			for (int i = 0; i < static_cast<int>(objects.size()); i++)
+				if (ImGui::Selectable(objects[i].name.c_str(), selectedObj == i))
+					selectedObj = i;
+
+			ImGui::End();
+
+			if (selectedObj >= 0 && selectedObj < static_cast<int>(objects.size()))
+			{
+				objEditor.SetTarget(&objects[selectedObj]);
+				bool stillOpen = objEditor.Render();
+				if (objEditor.DeleteObject())
+					objEditor.DeleteSelected(objects, selectedObj);
+				else if (!stillOpen)
+					selectedObj = -1;
+			}
+
+			KGR::Editor::Layer::EndDockspace();
 		}
 
 		imguiCore.EndFrame();
@@ -365,12 +413,13 @@ int main(int argc, char** argv)
 			app.RegisterLight(ld3);
 		}
 
-		app.Render(&window.GetWindow(), { 0.53f, 0.81f, 0.92f, 1.0f }, imguiCore.GetDrawData());
+		app.Render(&window.GetWindow(), { 0.53f, 0.81f, 0.92f, 1.0f }, imguiCore.GetDrawData(), &offscreen);
 
 	} while (!window.ShouldClose());
 
 	app.GetDevice().Get().waitIdle();
 
+	offscreen.Destroy(vkDevice);
 	imguiCore.Destroy();
 	window.DestroyMyWindow();
 	MeshLoader::UnloadAll();

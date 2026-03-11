@@ -40,6 +40,8 @@ namespace KGR
 			/// @brief Returns the current viewport content size in pixels.
 			glm::vec2 GetSize() const { return m_ViewportSize; }
 
+			glm::vec2 GetPos() const { return m_ViewportPos; }
+
 			/// @brief Returns true if the viewport window is focused.
 			bool IsFocused() const { return m_IsFocused; }
 
@@ -52,18 +54,30 @@ namespace KGR
 			/// @brief Returns the current gizmo mode.
 			GizmoMode GetGizmoMode() const { return m_GizmoMode; }
 
+			// Must be called with the descriptor set from OffscreenTarget::GetDescriptorSet()
+			// before the first Render(), and again after any resize.
+			void SetSceneDescriptor(VkDescriptorSet descriptor) { m_sceneDescriptor = descriptor; }
+
+			// Returns true if the viewport was resized this frame.
+			// The caller should then recreate the OffscreenTarget and call SetSceneDescriptor() again.
+			bool WasResizedThisFrame() const { return m_WasResized; }
+
 		private:
 			/// @brief Draws the ImGuizmo gizmo over the viewport for the selected entity.
 			void DrawGizmo(SceneEntity e, Scene* scene, CameraComponent* cam);
 
-			KGR::_ImGui::ImGuiCore&      m_ImGui;
-			KGR::_Vulkan::VulkanCore&    m_VulkanCore;
+			KGR::_ImGui::ImGuiCore& m_ImGui;
+			KGR::_Vulkan::VulkanCore& m_VulkanCore;
 
-			glm::vec2  m_ViewportSize = { 1280.0f, 720.0f };
-			glm::vec2  m_ViewportPos  = { 0.0f, 0.0f };
-			bool       m_IsFocused    = false;
-			bool       m_IsHovered    = false;
-			GizmoMode  m_GizmoMode    = GizmoMode::Translate;
+			VkDescriptorSet m_sceneDescriptor = VK_NULL_HANDLE;
+
+			glm::vec2 m_ViewportSize = { 1280.0f, 720.0f };
+			glm::vec2 m_ViewportSizePrev = { 0.0f, 0.0f };
+			glm::vec2 m_ViewportPos = { 0.0f, 0.0f };
+			bool m_IsFocused = false;
+			bool m_IsHovered = false;
+			bool m_WasResized = false;
+			GizmoMode m_GizmoMode = GizmoMode::Translate;
 		};
 	}
 }
