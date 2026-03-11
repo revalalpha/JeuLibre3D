@@ -22,7 +22,7 @@ namespace KGR
             ImVec2 contentSize = ImGui::GetContentRegionAvail();
             glm::vec2 newSize = { contentSize.x, contentSize.y };
 
-            // Detect resize so the caller can recreate the OffscreenTarget.
+            // Detect resize so the caller can recreate the Offscreen
             // We only flag it if the size actually changed AND is non-zero
             // (ImGui returns 0 for a collapsed/docked window).
             m_WasResized = (newSize != m_ViewportSizePrev && newSize.x > 1.0f && newSize.y > 1.0f);
