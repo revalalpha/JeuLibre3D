@@ -4,9 +4,6 @@
 #include "Core/CameraComponent.h"
 int main(int argc, char** argv)
 {
-    //Scene game{};
-    //game.Init(argv[0]);
-    //game.Run(KGR::Tools::Chrono<float>::Time::CreateFromValue(1.0f/60.0f));
 
 	std::filesystem::path exePath = argv[0];
 	std::filesystem::path projectRoot = exePath.parent_path().parent_path().parent_path().parent_path().parent_path();
@@ -38,14 +35,12 @@ int main(int argc, char** argv)
 
 		TransformComponent transform;
 		transform.SetPosition({ 0,0,0 });
-		//transform.RotateQuat<>()
 		transform.RotateQuat<RotData::Orientation::Pitch>(glm::radians(-45.0f));
 		auto e = registry.CreateEntity();
 		registry.AddComponents(e, std::move(mesh), std::move(text), std::move(transform));
 	}
 
 	{
-		
 		LightComponent<LightData::Type::Spot> lc = LightComponent<LightData::Type::Spot>::Create({ 1,0,1 }, { 1,1,1 }, 10.0f,100.0f,glm::radians(5.0f),0.15f);
 		TransformComponent transform;
 		transform.SetPosition({ 0,5,0 });
@@ -98,7 +93,6 @@ int main(int argc, char** argv)
 					registry.GetComponent<TextureComponent>(e));
 
 				auto& t = registry.GetComponent<TransformComponent>(e);
-				std::cout << t.GetRotation().x << " " << t.GetRotation().y << " " << t.GetRotation().z << std::endl;
 			}
 
 		}
