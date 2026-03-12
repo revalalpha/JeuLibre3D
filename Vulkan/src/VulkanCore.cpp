@@ -144,7 +144,8 @@ void KGR::_Vulkan::VulkanCore::initVulkan(GLFWwindow* window)
 		.buffer = m_lightCount.Get(),
 		.offset = 0,
 		.range = m_lightCount.GetSize() };
-	std::array descriptorWrites{
+	std::array descriptorWrites
+	{
 		vk::WriteDescriptorSet{
 			.dstSet = descriptorSets.Get(),
 			.dstBinding = 0,
@@ -152,36 +153,23 @@ void KGR::_Vulkan::VulkanCore::initVulkan(GLFWwindow* window)
 			.descriptorCount = 1,
 			.descriptorType = vk::DescriptorType::eUniformBuffer,
 			.pBufferInfo = &bufferInfo},
-		vk::WriteDescriptorSet{
+			vk::WriteDescriptorSet{
 				.dstSet = m_LightSet.Get(),
 				.dstBinding = 0,
 				.dstArrayElement = 0,
 				.descriptorCount = 1,
 				.descriptorType = vk::DescriptorType::eStorageBuffer,
 				.pBufferInfo = &bufferInfo2},
-		vk::WriteDescriptorSet{
-				.dstSet = m_LightSet.Get(),
-				.dstBinding = 1,
-				.dstArrayElement = 0,
-				.descriptorCount = 1,
-				.descriptorType = vk::DescriptorType::eUniformBuffer,
-				.pBufferInfo = &bufferInfo},
-			vk::WriteDescriptorSet{
-					.dstSet = m_LightSet.Get(),
-					.dstBinding = 0,
-					.dstArrayElement = 0,
-					.descriptorCount = 1,
-					.descriptorType = vk::DescriptorType::eStorageBuffer,
-					.pBufferInfo = &bufferInfo2},
-			vk::WriteDescriptorSet{
+				vk::WriteDescriptorSet{
 					.dstSet = m_LightSet.Get(),
 					.dstBinding = 1,
 					.dstArrayElement = 0,
 					.descriptorCount = 1,
 					.descriptorType = vk::DescriptorType::eUniformBuffer,
-					.pBufferInfo = &bufferInfo3}
-		};
-		device.Get().updateDescriptorSets(descriptorWrites, {});
+					.pBufferInfo = &bufferInfo3
+				}
+	};
+	device.Get().updateDescriptorSets(descriptorWrites, {});
 
 
 

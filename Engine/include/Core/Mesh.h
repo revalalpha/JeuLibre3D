@@ -56,6 +56,7 @@ private:
 struct MeshComponent
 {
 	Mesh* mesh = nullptr;
+	std::string sourcePath;
 };
 
 std::unique_ptr<Mesh> LoadMesh(const std::string& filePat, KGR::_Vulkan::VulkanCore* core);

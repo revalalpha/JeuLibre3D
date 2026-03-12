@@ -39,8 +39,8 @@ namespace KGR
             if (m_IsFocused)
             {
                 if (ImGui::IsKeyPressed(ImGuiKey_W)) m_GizmoMode = GizmoMode::Translate;
-                if (ImGui::IsKeyPressed(ImGuiKey_E)) m_GizmoMode = GizmoMode::Rotate;
-                if (ImGui::IsKeyPressed(ImGuiKey_R)) m_GizmoMode = GizmoMode::Scale;
+                if (ImGui::IsKeyPressed(ImGuiKey_R)) m_GizmoMode = GizmoMode::Rotate;
+                if (ImGui::IsKeyPressed(ImGuiKey_C)) m_GizmoMode = GizmoMode::Scale;
             }
 
             if (m_sceneDescriptor != VK_NULL_HANDLE)
@@ -48,8 +48,7 @@ namespace KGR
                 // The offscreen target is in SHADER_READ_ONLY_OPTIMAL at this point
                 // because VulkanCore::Render() transitioned it before ImGui rendering.
                 // ImGui::Image() simply emits a textured quad into the draw list.
-                ImGui::Image(
-                    reinterpret_cast<ImTextureID>(m_sceneDescriptor),
+                ImGui::Image(reinterpret_cast<ImTextureID>(m_sceneDescriptor),
                     ImVec2(m_ViewportSize.x, m_ViewportSize.y));
             }
             else
@@ -122,9 +121,14 @@ namespace KGR
                 float translation[3], rotation[3], scale[3];
                 ImGuizmo::DecomposeMatrixToComponents(matrixFloat, translation, rotation, scale);
 
-                transform.SetPosition(glm::vec3(translation[0], translation[1], translation[2]));
-                transform.SetRotation(glm::radians(glm::vec3(rotation[0], rotation[1], rotation[2])));
-                transform.SetScale(glm::vec3(scale[0], scale[1], scale[2]));
+                if (op == ImGuizmo::TRANSLATE)
+                    transform.SetPosition({ translation[0], translation[1], translation[2] });
+
+                if (op == ImGuizmo::ROTATE)
+                    transform.SetRotation(glm::radians(glm::vec3(rotation[0], rotation[1], rotation[2])));
+
+                if (op == ImGuizmo::SCALE)
+                    transform.SetScale(glm::vec3({ scale[0], scale[1], scale[2] }) * 2.0f);
             }
         }
     }
