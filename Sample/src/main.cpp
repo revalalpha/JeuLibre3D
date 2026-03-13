@@ -133,6 +133,17 @@ int main(int argc, char** argv)
 				window->RegisterLight(registry.GetComponent<LightComponent<LightData::Type::Directional>>(e), registry.GetComponent<TransformComponent>(e));
 		}
 
+		glm::mat3 fullScreenMat = glm::mat3(
+			1920.0f, 0.0f, 1920/2.0f,   // scale X
+			0.0f, 1080.0f, 1080 / 2.0f,   // scale Y
+			0.0f, 0.0f, 1.0f       // homogène
+		);
+		glm::mat3 test = glm::identity<glm::mat3>();
+		window->App()->RegisterUi(UiData{ {1,1,1,1},fullScreenMat }, &TextureLoader::Load("Textures/NoeGoat.png", window->App()),window->GetSize());
+
+
+		auto testpro = fullScreenMat * glm::vec3(-0.5, -0.5, 1);
+		testpro.x;
 		window->Render({ 0.53f, 0.81f, 0.92f, 1.0f });
 
 

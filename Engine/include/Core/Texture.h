@@ -43,6 +43,7 @@ public:
         const vk::raii::PipelineLayout* layout,
         int set);
 
+    glm::vec2 GetSize() const;
 private:
     KGR::_Vulkan::Image m_image;        ///< GPU image resource.
     KGR::_Vulkan::DescriptorSet m_set;  ///< Descriptor set used for binding.
@@ -131,3 +132,4 @@ using TextureLoader =
 KGR::ResourceManager<Texture,
     KGR::TypeWrapper<KGR::_Vulkan::VulkanCore*>,
     LoadTexture>;
+

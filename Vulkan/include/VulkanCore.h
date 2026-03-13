@@ -114,7 +114,7 @@ namespace KGR
 			 * @return Descriptor set associated with the image.
 			 */
 			DescriptorSet CreateSetForImage(Image* image);
-
+			/*DescriptorSet CreateSetForImageUi(Image* image);*/
 			/**
 			 * @brief Creates a vertex buffer from a vector of vertices.
 			 * @tparam VertexT Type of vertex.
@@ -185,7 +185,7 @@ namespace KGR
 			 * @param texture Vector of textures for the mesh
 			 */
 			void RegisterRender(Mesh& mesh, const glm::mat4& model, std::vector<Texture*>& texture);
-
+			void RegisterUi(const UiData& data, Texture* texture,const glm::vec2& screenSize);
 			/**
 			 * @brief Performs rendering of registered meshes, lights, and optionally ImGui data.
 			 * @param window GLFW window pointer
@@ -227,10 +227,13 @@ namespace KGR
 			ImagesViews            swapChainImageViews;
 
 			DescriptorLayouts descriptorSetLayout;
+			DescriptorLayouts uiLayout;
 			DescriptorPool descriptorPool;
 			DescriptorSet descriptorSets;
 			Pipeline               graphicsPipeline;
 			Pipeline               linePipeLine;
+			Pipeline               uiPipeline;
+
 			DebugRenderer          debugRenderer;
 
 			CommandBuffers commandBuffers;
@@ -254,6 +257,13 @@ namespace KGR
 			Buffer m_lightCount;
 			std::optional<UniformBufferObject> m_ubo;
 			std::vector<MeshData> m_toRenderObject;
+			std::vector<std::pair<Texture*, UiData::UiValidData>> uIRender;
+
+
+
+			Buffer uiVertexBuffer;
+			Buffer uiIndexBuffer;
+
 		};
 
 		template <typename VertexT>
