@@ -1,5 +1,15 @@
 #include <iostream>
 
+float VirtualToNDC_X(float x, float virtualWidth, float aspectRatio,bool scale = false)
+{
+	return (x / virtualWidth) * (2.0f * aspectRatio) - (scale == false ? aspectRatio : 0.0f);
+}
+
+float VirtualToNDC_Y(float y, float virtualHeight, bool scale = false)
+{
+	return (y / virtualHeight) * 2.0f - (scale == false? 1.0f : 0.0f);
+}
+
 #include "Game.h"
 #include "Core/CameraComponent.h"
 int main(int argc, char** argv)
@@ -8,7 +18,7 @@ int main(int argc, char** argv)
 	std::filesystem::path exePath = argv[0];
 	std::filesystem::path projectRoot = exePath.parent_path().parent_path().parent_path().parent_path().parent_path();
 	KGR::RenderWindow::Init();
-	std::unique_ptr<KGR::RenderWindow> window = std::make_unique<KGR::RenderWindow>(glm::vec2{ 1920,1080 }, "test", projectRoot / "Ressources");
+	std::unique_ptr<KGR::RenderWindow> window = std::make_unique<KGR::RenderWindow>(glm::vec2{ 1920,800 }, "test", projectRoot / "Ressources");
 	window->GetInputManager()->SetMode(GLFW_CURSOR_DISABLED);
 
 	ecsType registry = ecsType{};
@@ -133,17 +143,44 @@ int main(int argc, char** argv)
 				window->RegisterLight(registry.GetComponent<LightComponent<LightData::Type::Directional>>(e), registry.GetComponent<TransformComponent>(e));
 		}
 
+
+		float aspectRatio = static_cast<float>(window->GetSize().x) / static_cast<float>(window->GetSize().y);
+		auto scaleX = [&](float x)-> float
+			{
+				return 2.0f * (((x/ 1920.0f) * aspectRatio) / (16.0f / 9.0f));
+			};
+		auto scaleY = [&](float x)-> float
+			{
+				return 2.0f * (x / 1080.0f);
+			};
+		auto posX = [&](float x)-> float
+			{
+
+				return (2.0f * aspectRatio / 1920.0f) * x - aspectRatio;
+			};
+		auto posY = [&](float y)-> float
+			{
+				
+				return (2.0f / 1080.0f) * y - 1.0f;
+			};
+
+		auto scaleX_ = VirtualToNDC_X(1920, 1920.0f, aspectRatio,true);
+		std::cout << scaleX_;
+		auto posX_ = VirtualToNDC_X(0, 1920.0f, aspectRatio);
+		std::cout << posX_;
+
+		auto scaleY_ = VirtualToNDC_Y(1080, 1080.0f,true);
+		std::cout << scaleY_;
+		auto posY_ = VirtualToNDC_Y(0, 1080.0f);
+		std::cout << posY_;
+
 		glm::mat3 fullScreenMat = glm::mat3(
-			1920.0f, 0.0f, 1920/2.0f,   // scale X
-			0.0f, 1080.0f, 1080 / 2.0f,   // scale Y
-			0.0f, 0.0f, 1.0f       // homogène
-		);
-		glm::mat3 test = glm::identity<glm::mat3>();
-		window->App()->RegisterUi(UiData{ {1,1,1,1},fullScreenMat }, &TextureLoader::Load("Textures/NoeGoat.png", window->App()),window->GetSize());
+			VirtualToNDC_X(1920,1920.0f,aspectRatio,true), 0.0f, VirtualToNDC_X(0, 1920.0f, aspectRatio),
+			0.0f, VirtualToNDC_Y(1080,1080,true), VirtualToNDC_Y(0,1080),
+			0.0f,		0.0f,	1.0f		 );
 
 
-		auto testpro = fullScreenMat * glm::vec3(-0.5, -0.5, 1);
-		testpro.x;
+		window->App()->RegisterUi(UiData{ {1,1,1,1},fullScreenMat }, &TextureLoader::Load("Textures/texture.jpg", window->App()),window->GetSize());
 		window->Render({ 0.53f, 0.81f, 0.92f, 1.0f });
 
 

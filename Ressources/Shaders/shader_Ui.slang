@@ -36,14 +36,13 @@ struct VSOutput
 VSOutput vertMain(VSInput input) {  
     VSOutput output;
 
-    float3x3 ortho = float3x3(
-        2.0 / pushConstantData.width, 0.0, -1.0, 
-        0.0, 2.0 / pushConstantData.height, -1.0, 
-        0.0, 0.0, 1.0
-);
+    float aspectRatio = pushConstantData.width / pushConstantData.height;
     float3x3 transform3x3 = float3x3(pushConstantData.raw1.xyz, pushConstantData.raw2.xyz, pushConstantData.raw3.xyz);
-    float3 wpos = mul(ortho,mul(transform3x3,float3(input.inPosition, 1.0f)));
-    output.pos = float4(wpos,1.0f);
+    float3 wpos = mul(transform3x3, float3(input.inPosition, 1.0f));
+    float2 pos;
+    pos.x = wpos.x / aspectRatio;
+    pos.y = wpos.y;
+    output.pos = float4(pos,0.0f,1.0f);
     output.fragColor = pushConstantData.inColor;
     output.fragTexCoord = input.inTexCoord;
     return output;
