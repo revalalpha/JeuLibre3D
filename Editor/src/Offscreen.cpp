@@ -7,8 +7,7 @@ namespace KGR
     namespace Editor
     {
         void Offscreen::Create(VkDevice device, VkPhysicalDevice physDevice, VkDescriptorPool pool,
-            uint32_t width, uint32_t height,
-            VkFormat colorFormat, VkFormat depthFormat)
+            uint32_t width, uint32_t height, VkFormat colorFormat, VkFormat depthFormat)
         {
             m_colorFormat = colorFormat;
             CreateResources(device, physDevice, pool, width, height, colorFormat, depthFormat);
@@ -19,7 +18,6 @@ namespace KGR
         {
             if (m_width == width && m_height == height)
                 return;
-
             Destroy(device);
             CreateResources(device, physDevice, pool, width, height, m_colorFormat, VK_FORMAT_D32_SFLOAT);
         }
@@ -28,7 +26,6 @@ namespace KGR
         {
             if (m_descriptorSet != VK_NULL_HANDLE)
                 ImGui_ImplVulkan_RemoveTexture(m_descriptorSet);
-
             DestroyResources(device);
         }
 
@@ -38,23 +35,20 @@ namespace KGR
             m_width = w;
             m_height = h;
 
-            // Color image: needs COLOR_ATTACHMENT (Vulkan writes) + SAMPLED (ImGui reads).
+            // color: needs COLOR_ATTACHMENT (Vulkan writes) + SAMPLED (ImGui reads)
             AllocImage(device, physDevice, w, h, colorFmt,
                 VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                 m_colorImage, m_colorMemory);
-
             MakeView(device, m_colorImage, colorFmt, VK_IMAGE_ASPECT_COLOR_BIT, m_colorView);
 
-            // Depth image: only needs DEPTH_STENCIL_ATTACHMENT, never sampled.
+            // depth: only needs DEPTH_STENCIL_ATTACHMENT, never sampled
             AllocImage(device, physDevice, w, h, depthFmt,
                 VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                 m_depthImage, m_depthMemory);
-
             MakeView(device, m_depthImage, depthFmt, VK_IMAGE_ASPECT_DEPTH_BIT, m_depthView);
 
-            // Sampler — nearest is fine for a full-screen blit, linear gives smoother downscaling.
             VkSamplerCreateInfo samplerInfo{};
             samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
             samplerInfo.magFilter = VK_FILTER_LINEAR;
@@ -65,9 +59,9 @@ namespace KGR
             samplerInfo.maxLod = 1.0f;
 
             if (vkCreateSampler(device, &samplerInfo, nullptr, &m_sampler) != VK_SUCCESS)
-                throw std::runtime_error("OffscreenTarget: failed to create sampler");
+                throw std::runtime_error("Offscreen: failed to create sampler");
 
-            // The image must be in SHADER_READ_ONLY_OPTIMAL when ImGui samples it.
+            // the image must be in SHADER_READ_ONLY_OPTIMAL when ImGui samples it
             m_descriptorSet = ImGui_ImplVulkan_AddTexture(
                 m_sampler, m_colorView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         }
@@ -78,7 +72,6 @@ namespace KGR
             vkDestroyImageView(device, m_colorView, nullptr);
             vkFreeMemory(device, m_colorMemory, nullptr);
             vkDestroyImage(device, m_colorImage, nullptr);
-
             vkDestroyImageView(device, m_depthView, nullptr);
             vkFreeMemory(device, m_depthMemory, nullptr);
             vkDestroyImage(device, m_depthImage, nullptr);
@@ -112,7 +105,7 @@ namespace KGR
             imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
             if (vkCreateImage(device, &imageInfo, nullptr, &outImage) != VK_SUCCESS)
-                throw std::runtime_error("OffscreenTarget: failed to create image");
+                throw std::runtime_error("Offscreen: failed to create image");
 
             VkMemoryRequirements memReqs{};
             vkGetImageMemoryRequirements(device, outImage, &memReqs);
@@ -123,7 +116,7 @@ namespace KGR
             allocInfo.memoryTypeIndex = FindMemoryType(physDevice, memReqs.memoryTypeBits, memProps);
 
             if (vkAllocateMemory(device, &allocInfo, nullptr, &outMemory) != VK_SUCCESS)
-                throw std::runtime_error("OffscreenTarget: failed to allocate image memory");
+                throw std::runtime_error("Offscreen: failed to allocate image memory");
 
             vkBindImageMemory(device, outImage, outMemory, 0);
         }
@@ -143,7 +136,7 @@ namespace KGR
             viewInfo.subresourceRange.layerCount = 1;
 
             if (vkCreateImageView(device, &viewInfo, nullptr, &outView) != VK_SUCCESS)
-                throw std::runtime_error("OffscreenTarget: failed to create image view");
+                throw std::runtime_error("Offscreen: failed to create image view");
         }
 
         uint32_t Offscreen::FindMemoryType(VkPhysicalDevice physDevice,
@@ -153,13 +146,11 @@ namespace KGR
             vkGetPhysicalDeviceMemoryProperties(physDevice, &memProperties);
 
             for (uint32_t i = 0; i < memProperties.memoryTypeCount; ++i)
-            {
                 if ((typeFilter & (1u << i)) &&
                     (memProperties.memoryTypes[i].propertyFlags & props) == props)
                     return i;
-            }
 
-            throw std::runtime_error("OffscreenTarget: no suitable memory type found");
+            throw std::runtime_error("Offscreen: no suitable memory type found");
         }
     }
 }

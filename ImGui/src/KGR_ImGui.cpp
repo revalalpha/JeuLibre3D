@@ -15,24 +15,6 @@ void KGR::_ImGui::ImGuiCore::InitImGui(KGR::_Vulkan::VulkanCore* vulkanCore, KGR
     InitContext(m_EngineContext, vulkanCore, engineWindow);
 }
 
-bool KGR::_ImGui::ImGuiCore::LoadMesh(MeshComponent& meshComponent, std::string& path, _Vulkan::VulkanCore& vkCore)
-{
-    std::string newPath = OpenFile();
-
-    if (newPath.empty())
-        return false;
-
-    vkCore.GetDevice().Get().waitIdle();
-
-    if (!path.empty())
-        MeshLoader::Unload(path);
-
-    path = newPath;
-    meshComponent.mesh = &MeshLoader::Load(path, &vkCore);
-
-    return true;
-}
-
 void KGR::_ImGui::ImGuiCore::BeginFrame(ContextTarget target)
 {
     SetContext(target);
@@ -44,13 +26,6 @@ void KGR::_ImGui::ImGuiCore::BeginFrame(ContextTarget target)
 void KGR::_ImGui::ImGuiCore::SetContext(ContextTarget target)
 {
     ImGui::SetCurrentContext(target == ContextTarget::Engine ? m_EngineContext : m_GameContext);
-}
-
-void KGR::_ImGui::ImGuiCore::SetWindow(const ImVec2& position, const ImVec2& size, const char* name, bool* p_open)
-{
-    ImGui::SetNextWindowPos(position, ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(size, ImGuiCond_FirstUseEver);
-    ImGui::Begin(name, p_open);
 }
 
 void KGR::_ImGui::ImGuiCore::SetCamera(CameraComponent* cam, TransformComponent* transform, float speed)
@@ -162,18 +137,30 @@ void KGR::_ImGui::ImGuiCore::Destroy()
     ImGui::DestroyContext(m_EngineContext);
 }
 
-std::string KGR::_ImGui::ImGuiCore::OpenFile()
+std::string KGR::_ImGui::ImGuiCore::OpenFile(const char* filter)
 {
     OPENFILENAMEA ofn = {};
     char path[512] = "";
     ofn.lStructSize = sizeof(ofn);
-    ofn.lpstrFilter = "OBJ Files\0*.obj\0All Files\0*.*\0";
+    ofn.lpstrFilter = filter;
     ofn.lpstrFile = path;
     ofn.nMaxFile = sizeof(path);
     ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
-    ofn.lpstrDefExt = "obj";
 
     return GetOpenFileNameA(&ofn) ? std::string(path) : std::string();
+}
+
+std::string KGR::_ImGui::ImGuiCore::SaveFile(const char* filter)
+{
+    OPENFILENAMEA ofn = {};
+    char path[512] = "";
+    ofn.lStructSize = sizeof(ofn);
+    ofn.lpstrFilter = filter;
+    ofn.lpstrFile = path;
+    ofn.nMaxFile = sizeof(path);
+    ofn.Flags = OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR;
+
+    return GetSaveFileNameA(&ofn) ? std::string(path) : std::string();
 }
 
 void KGR::_ImGui::ImGuiCore::InitInfo()
@@ -217,26 +204,4 @@ void KGR::_ImGui::ImGuiCore::InitContext(ImGuiContext*& context, KGR::_Vulkan::V
     ImGui_ImplGlfw_InitForVulkan(&window->GetWindow(), true);
 
     InitInfo();
-}
-
-bool KGR::_ImGui::ImGuiCore::IsButton(ButtonType type)
-{
-    if (type == ButtonType::Object)
-        return ImGui::Button("Object");
-    else if (type == ButtonType::Light)
-        return ImGui::Button("Light");
-    else if (type == ButtonType::Camera)
-        return ImGui::Button("Camera");
-    else if (type == ButtonType::Scene)
-        return ImGui::Button("Scene");
-    else if (type == ButtonType::Load)
-        return ImGui::Button("Load");
-    else if (type == ButtonType::PlayAnimation)
-        return ImGui::Button("Play Animation");
-    else if (type == ButtonType::StopAnimation)
-        return ImGui::Button("Stop Animation");
-    else if (type == ButtonType::ResetObject)
-        return ImGui::Button("Reset Object");
-
-    return false;
 }

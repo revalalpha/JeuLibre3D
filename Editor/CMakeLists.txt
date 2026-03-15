@@ -30,6 +30,7 @@ source_group(
 )
 
 find_package(glfw3 CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
 
 set(VulkanSDK_DIR $ENV{VULKAN_SDK})
 set(VukanHeader ${VulkanSDK_DIR}/Include)
@@ -49,6 +50,7 @@ target_link_libraries(${PROJECT_NAME}
     GLFW_
     GameLib
     glfw
+    nlohmann_json::nlohmann_json
     ${VulkanLib}/vulkan-1.lib
 )
 

@@ -8,11 +8,8 @@
 #include "Core/ManagerImple.h"
 #include "Core/LightComponent.h"
 #include "KGR_ImGui.h"
-#include "ObjectState.h"
-#include "ObjectEditor.h"
 #include "Core/Frenet.h"
 #include "Core/Spline.h"
-#include "DebugDraw3D.h"
 #include <glm/gtc/constants.hpp>
 #include "Core/Mesh.h"
 #include "Context.h"
@@ -148,35 +145,31 @@ int main(int argc, char** argv)
     baseTexture.SetSize(1);
     baseTexture.AddTexture(0, &TextureLoader::Load("Textures\\BaseTexture.png", &app));
 
-    std::vector<ObjectState> objects;
-    int selectedObj = -1;
-    ObjectEditor objEditor(imguiCore, app);
+    //// --- Spline tube geometry ---
+    //std::vector<glm::vec3> controlPoints =
+    //{
+    //    { -3.0f, 0.0f,  4.0f }, {  0.0f, 0.0f,  0.0f }, {  3.0f, 0.0f,  4.0f },
+    //    {  6.0f, 0.0f,  0.0f }, {  3.0f, 0.0f, -4.0f }, {  0.0f, 0.0f,  0.0f },
+    //    { -3.0f, 0.0f,  4.0f }, { -6.0f, 0.0f,  0.0f }, { -3.0f, 0.0f, -4.0f },
+    //    {  0.0f, 0.0f,  0.0f }, {  3.0f, 0.0f,  4.0f }, {  6.0f, 0.0f,  0.0f },
+    //    {  3.0f, 0.0f, -4.0f }, {  0.0f, 0.0f,  0.0f }, { -3.0f, 0.0f, -4.0f },
+    //    { -6.0f, 0.0f,  0.0f }, { -3.0f, 0.0f,  4.0f }, {  0.0f, 0.0f,  0.0f },
+    //    {  3.0f, 0.0f,  4.0f },
+    //};
 
-    // --- Spline tube geometry ---
-    std::vector<glm::vec3> controlPoints =
-    {
-        { -3.0f, 0.0f,  4.0f }, {  0.0f, 0.0f,  0.0f }, {  3.0f, 0.0f,  4.0f },
-        {  6.0f, 0.0f,  0.0f }, {  3.0f, 0.0f, -4.0f }, {  0.0f, 0.0f,  0.0f },
-        { -3.0f, 0.0f,  4.0f }, { -6.0f, 0.0f,  0.0f }, { -3.0f, 0.0f, -4.0f },
-        {  0.0f, 0.0f,  0.0f }, {  3.0f, 0.0f,  4.0f }, {  6.0f, 0.0f,  0.0f },
-        {  3.0f, 0.0f, -4.0f }, {  0.0f, 0.0f,  0.0f }, { -3.0f, 0.0f, -4.0f },
-        { -6.0f, 0.0f,  0.0f }, { -3.0f, 0.0f,  4.0f }, {  0.0f, 0.0f,  0.0f },
-        {  3.0f, 0.0f,  4.0f },
-    };
+    //HermitCurve spline = HermitCurve::FromPoints(controlPoints, 0.0f);
+    //const int   curveN = 100;
+    //float       maxT = spline.MaxT();
 
-    HermitCurve spline = HermitCurve::FromPoints(controlPoints, 0.0f);
-    const int   curveN = 100;
-    float       maxT = spline.MaxT();
+    //std::vector<glm::vec3> curvePoints;
+    //for (int i = 0; i < curveN; ++i)
+    //{
+    //    float t = static_cast<float>(i) / static_cast<float>(curveN - 1) * maxT;
+    //    curvePoints.push_back(spline.Compute(t));
+    //}
 
-    std::vector<glm::vec3> curvePoints;
-    for (int i = 0; i < curveN; ++i)
-    {
-        float t = static_cast<float>(i) / static_cast<float>(curveN - 1) * maxT;
-        curvePoints.push_back(spline.Compute(t));
-    }
-
-    auto curveTangents = KGR::RMF::EstimateForwardDirs(curvePoints);
-    auto curveFrames = KGR::RMF::BuildFrames(curvePoints, curveTangents);
+    //auto curveTangents = KGR::RMF::EstimateForwardDirs(curvePoints);
+    //auto curveFrames = KGR::RMF::BuildFrames(curvePoints, curveTangents);
 
     // ---------------------------------------------------------------------------
     // Génération du mesh du tube — fait une seule fois avant la boucle.
@@ -184,16 +177,16 @@ int main(int argc, char** argv)
     // envoie directement à VulkanCore via le constructeur de SubMeshes qui
     // alloue le vertex buffer et l'index buffer sur le GPU.
     // ---------------------------------------------------------------------------
-    const int   tubeSegments = 12;
-    const float tubeRadius = 0.18f;
+    //const int   tubeSegments = 12;
+    //const float tubeRadius = 0.18f;
 
-    Mesh tubeMesh;
-    tubeMesh.AddSubMesh(std::make_unique<SubMeshes>(
-        BuildTubeVertices(curvePoints, curveFrames, tubeRadius, tubeSegments),
-        BuildTubeIndices(curveN, tubeSegments),
-        "tube", &app));
+    //Mesh tubeMesh;
+    //tubeMesh.AddSubMesh(std::make_unique<SubMeshes>(
+    //    BuildTubeVertices(curvePoints, curveFrames, tubeRadius, tubeSegments),
+    //    BuildTubeIndices(curveN, tubeSegments),
+    //    "tube", &app));
 
-    DebugDraw3D debugDraw;
+    //DebugDraw3D debugDraw;
 
     auto lastTime = std::chrono::high_resolution_clock::now();
 
@@ -210,10 +203,6 @@ int main(int argc, char** argv)
 
         imguiCore.UpdateCamera(deltaTime);
 
-        for (auto& obj : objects)
-            if (obj.isAnimating)
-                obj.rotation.y += glm::radians(90.0f) * deltaTime;
-
         // --- ImGui frame ---
         imguiCore.BeginFrame(KGR::_ImGui::ContextTarget::Engine);
         ImGuizmo::BeginFrame();
@@ -225,8 +214,8 @@ int main(int argc, char** argv)
                 glm::vec2 vpPos = editor.GetViewportPos();
                 glm::vec2 vpSize = editor.GetViewportSize();
 
-                debugDraw.BeginFrame(editor.GetCamera().GetView(), editor.GetCamera().GetProj(),
-                    vpSize.x, vpSize.y);
+                //debugDraw.BeginFrame(editor.GetCamera().GetView(), editor.GetCamera().GetProj(),
+                //    vpSize.x, vpSize.y);
 
                 ImDrawList* dl = ImGui::GetBackgroundDrawList();
                 dl->PushClipRect(
@@ -240,14 +229,7 @@ int main(int argc, char** argv)
         imguiCore.EndFrame();
 
         // Tube mesh — identité comme transform car les vertices sont déjà en world space
-        app.RegisterRender(tubeMesh, glm::mat4(1.0f), baseTexture.GetAllTextures());
-
-        for (auto& obj : objects)
-        {
-            obj.ApplyTransform();
-            if (obj.mesh.mesh)
-                app.RegisterRender(*obj.mesh.mesh, obj.transform.GetFullTransform(), obj.texture.GetAllTextures());
-        }
+        //app.RegisterRender(tubeMesh, glm::mat4(1.0f), baseTexture.GetAllTextures());
 
         // --- Render scene entities ---
         std::vector<std::vector<Texture*>> entityTextures;
