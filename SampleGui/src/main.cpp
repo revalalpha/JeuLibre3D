@@ -16,85 +16,7 @@
 
 //----------------------------------------------------------------
 // WORK IN PROGRESS
-// THERE ARE SOME COMMENTS FOR ALGORITHMS FOUND BY AI.
-// I LET THE COMMENTS HERE TO UNDERSTAND HOW IT WORKS BEFORE REWORKING IT.
 //----------------------------------------------------------------
-
-// ---------------------------------------------------------------------------
-// Génère la grille aplatie de vertices du tube.
-// Index d'un sommet dans le tableau : i * tubeSegments + j
-//   i = position le long de la courbe  (0 .. curveN-1)
-//   j = position autour de l'anneau    (0 .. tubeSegments-1)
-//
-// La normale est la direction radiale pure (cos*right + sin*up), déjà unitaire.
-// Les UVs mappent u autour de l'anneau et v le long de la courbe.
-// ---------------------------------------------------------------------------
-static std::vector<Vertex> BuildTubeVertices(
-    const std::vector<glm::vec3>& curvePoints,
-    const std::vector<KGR::CurveFrame>& curveFrames,
-    float radius,
-    int   tubeSegments)
-{
-    const int curveN = static_cast<int>(curvePoints.size());
-    std::vector<Vertex> vertices;
-    vertices.reserve(curveN * tubeSegments);
-
-    for (int i = 0; i < curveN; ++i)
-    {
-        for (int j = 0; j < tubeSegments; ++j)
-        {
-            float angle = (static_cast<float>(j) / static_cast<float>(tubeSegments))
-                * glm::two_pi<float>();
-
-            // Direction radiale dans le plan local (right, up) du frame RMF
-            glm::vec3 radialDir = curveFrames[i].right * std::cos(angle)
-                + curveFrames[i].up * std::sin(angle);
-
-            Vertex v;
-            v.pos = curvePoints[i] + radialDir * radius;
-            v.normal = radialDir;
-            v.uv = { static_cast<float>(j) / static_cast<float>(tubeSegments),
-                         static_cast<float>(i) / static_cast<float>(curveN - 1) };
-            v.color = glm::vec4(1.0f);
-
-            vertices.push_back(v);
-        }
-    }
-    return vertices;
-}
-
-// ---------------------------------------------------------------------------
-// Génère les indices (triangles) pour une grille torique curveN x tubeSegments.
-// Chaque quad (i,j) → (i+1,j) → (i+1,j+1) → (i,j+1) est découpé en 2 triangles.
-// Les modulos referment la surface dans les deux directions (tore fermé).
-// ---------------------------------------------------------------------------
-static std::vector<uint32_t> BuildTubeIndices(int curveN, int tubeSegments)
-{
-    std::vector<uint32_t> indices;
-    indices.reserve(curveN * tubeSegments * 6);
-
-    auto idx = [&](int i, int j) -> uint32_t
-        {
-            return static_cast<uint32_t>((i % curveN) * tubeSegments + (j % tubeSegments));
-        };
-
-    for (int i = 0; i < curveN; ++i)
-    {
-        for (int j = 0; j < tubeSegments; ++j)
-        {
-            uint32_t v00 = idx(i, j);
-            uint32_t v10 = idx(i + 1, j);
-            uint32_t v01 = idx(i, j + 1);
-            uint32_t v11 = idx(i + 1, j + 1);
-
-            // Triangle 1
-        	indices.push_back(v00); indices.push_back(v10); indices.push_back(v11);
-            // Triangle 2
-        	indices.push_back(v00); indices.push_back(v11); indices.push_back(v01);
-        }
-    }
-    return indices;
-}
 
 int main(int argc, char** argv)
 {
@@ -145,49 +67,6 @@ int main(int argc, char** argv)
     baseTexture.SetSize(1);
     baseTexture.AddTexture(0, &TextureLoader::Load("Textures\\BaseTexture.png", &app));
 
-    //// --- Spline tube geometry ---
-    //std::vector<glm::vec3> controlPoints =
-    //{
-    //    { -3.0f, 0.0f,  4.0f }, {  0.0f, 0.0f,  0.0f }, {  3.0f, 0.0f,  4.0f },
-    //    {  6.0f, 0.0f,  0.0f }, {  3.0f, 0.0f, -4.0f }, {  0.0f, 0.0f,  0.0f },
-    //    { -3.0f, 0.0f,  4.0f }, { -6.0f, 0.0f,  0.0f }, { -3.0f, 0.0f, -4.0f },
-    //    {  0.0f, 0.0f,  0.0f }, {  3.0f, 0.0f,  4.0f }, {  6.0f, 0.0f,  0.0f },
-    //    {  3.0f, 0.0f, -4.0f }, {  0.0f, 0.0f,  0.0f }, { -3.0f, 0.0f, -4.0f },
-    //    { -6.0f, 0.0f,  0.0f }, { -3.0f, 0.0f,  4.0f }, {  0.0f, 0.0f,  0.0f },
-    //    {  3.0f, 0.0f,  4.0f },
-    //};
-
-    //HermitCurve spline = HermitCurve::FromPoints(controlPoints, 0.0f);
-    //const int   curveN = 100;
-    //float       maxT = spline.MaxT();
-
-    //std::vector<glm::vec3> curvePoints;
-    //for (int i = 0; i < curveN; ++i)
-    //{
-    //    float t = static_cast<float>(i) / static_cast<float>(curveN - 1) * maxT;
-    //    curvePoints.push_back(spline.Compute(t));
-    //}
-
-    //auto curveTangents = KGR::RMF::EstimateForwardDirs(curvePoints);
-    //auto curveFrames = KGR::RMF::BuildFrames(curvePoints, curveTangents);
-
-    // ---------------------------------------------------------------------------
-    // Génération du mesh du tube — fait une seule fois avant la boucle.
-    // On produit les vertices (pos, normal, uv) et les indices, puis on les
-    // envoie directement à VulkanCore via le constructeur de SubMeshes qui
-    // alloue le vertex buffer et l'index buffer sur le GPU.
-    // ---------------------------------------------------------------------------
-    //const int   tubeSegments = 12;
-    //const float tubeRadius = 0.18f;
-
-    //Mesh tubeMesh;
-    //tubeMesh.AddSubMesh(std::make_unique<SubMeshes>(
-    //    BuildTubeVertices(curvePoints, curveFrames, tubeRadius, tubeSegments),
-    //    BuildTubeIndices(curveN, tubeSegments),
-    //    "tube", &app));
-
-    //DebugDraw3D debugDraw;
-
     auto lastTime = std::chrono::high_resolution_clock::now();
 
     // ---------------------------------------------------------------------------
@@ -214,9 +93,6 @@ int main(int argc, char** argv)
                 glm::vec2 vpPos = editor.GetViewportPos();
                 glm::vec2 vpSize = editor.GetViewportSize();
 
-                //debugDraw.BeginFrame(editor.GetCamera().GetView(), editor.GetCamera().GetProj(),
-                //    vpSize.x, vpSize.y);
-
                 ImDrawList* dl = ImGui::GetBackgroundDrawList();
                 dl->PushClipRect(
                     ImVec2(vpPos.x, vpPos.y),
@@ -228,8 +104,6 @@ int main(int argc, char** argv)
         }
         imguiCore.EndFrame();
 
-        // Tube mesh — identité comme transform car les vertices sont déjà en world space
-        //app.RegisterRender(tubeMesh, glm::mat4(1.0f), baseTexture.GetAllTextures());
 
         // --- Render scene entities ---
         std::vector<std::vector<Texture*>> entityTextures;

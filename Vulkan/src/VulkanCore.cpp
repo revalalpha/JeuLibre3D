@@ -551,12 +551,6 @@ int KGR::_Vulkan::VulkanCore::BeginRendering(GLFWwindow* window, vk::raii::Comma
 		recreateSwapChain(window);
 		return -1;
 	}
-	// On other success codes than eSuccess and eSuboptimalKHR we just throw an exception.
-	// 
-	// Only reset the fence if we are submitting work
-
-
-
 
 
 	// Before starting rendering, transition the swapchain image to COLOR_ATTACHMENT_OPTIMAL
@@ -569,6 +563,7 @@ int KGR::_Vulkan::VulkanCore::BeginRendering(GLFWwindow* window, vk::raii::Comma
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,        // srcStage
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,        // dstStage
 		vk::ImageAspectFlagBits::eColor, *currentBuffer);
+
 	// Transition depth image to depth attachment optimal layout
 	transition_image_layout(
 		*depthImage.Get(),
@@ -649,6 +644,7 @@ int KGR::_Vulkan::VulkanCore::EndRendering(GLFWwindow* window, vk::raii::Command
 	queue.Get().submit({}, *syncObject.GetCurrentFence());
 
 	auto result = PresentImage();
+
 	// Due to VULKAN_HPP_HANDLE_ERROR_OUT_OF_DATE_AS_SUCCESS being defined, eErrorOutOfDateKHR can be checked as a result
 	// here and does not need to be caught by an exception.
 	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
@@ -810,6 +806,7 @@ void KGR::_Vulkan::VulkanCore::Render(GLFWwindow* window, const glm::vec4& color
 	//currentBuffer->drawIndexed(36, 1, 0, 0, 0);
 
 	currentBuffer->bindPipeline(vk::PipelineBindPoint::eGraphics, *uiPipeline.Get());
+
 	for (auto& ui : uIRender)
 	{
 		// bind the vertex and indexBuffer
@@ -818,8 +815,6 @@ void KGR::_Vulkan::VulkanCore::Render(GLFWwindow* window, const glm::vec4& color
 		currentBuffer->pushConstants<UiData::UiValidData>(uiPipeline.GetLayout(), vk::ShaderStageFlagBits::eVertex, 0,ui.second);
 		ui.first->Bind(currentBuffer, &uiPipeline.GetLayout(), 0);
 		currentBuffer->drawIndexed(static_cast<std::uint32_t>(uiIndexBuffer.GetSize() / sizeof(std::uint32_t)), 1, 0, 0, 0);
-	}
-
 		currentBuffer->bindPipeline(vk::PipelineBindPoint::eGraphics, *linePipeLine.Get());
 		currentBuffer->bindDescriptorSets(
 			vk::PipelineBindPoint::eGraphics, graphicsPipeline.GetLayout(), 0, *descriptorSets.Get(), nullptr);
