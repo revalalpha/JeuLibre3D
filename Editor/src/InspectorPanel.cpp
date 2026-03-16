@@ -1,11 +1,12 @@
 #include "InspectorPanel.h"
+#include "Context.h"
 
 namespace KGR
 {
     namespace Editor
     {
-        InspectorPanel::InspectorPanel(Scene* scene)
-            : m_scene(scene)
+        InspectorPanel::InspectorPanel(Context* context, Scene* scene)
+            : m_context(context), m_scene(scene)
         {
         }
 
@@ -53,20 +54,33 @@ namespace KGR
                 return;
 
             auto& transform = reg.GetComponent<TransformComponent>(e);
+            static TransformComponent initialState;
+
+            auto checkUndoRedo = [&]()
+                {
+                    if (ImGui::IsItemActivated())
+                        initialState = transform;
+
+                    if (ImGui::IsItemDeactivatedAfterEdit())
+                        m_context->GetUndoManager().RecordEdit(m_scene, e, initialState, transform);
+                };
 
             if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
             {
                 glm::vec3 position = transform.GetPosition();
                 if (ImGui::DragFloat3("Position", glm::value_ptr(position), 0.05f))
-                    transform.SetPosition(position);
+                    transform.SetPosition(position);                   
+                checkUndoRedo();
 
                 glm::vec3 rotationDeg = glm::degrees(transform.GetRotation());
                 if (ImGui::DragFloat3("Rotation", glm::value_ptr(rotationDeg), 0.5f))
                     transform.SetRotation(glm::radians(rotationDeg));
+                checkUndoRedo();
 
                 glm::vec3 scale = transform.GetScale();
                 if (ImGui::DragFloat3("Scale", glm::value_ptr(scale), 0.05f, 0.01f, 100.0f))
                     transform.SetScale(scale * 2.0f);
+                checkUndoRedo();
             }
         }
 

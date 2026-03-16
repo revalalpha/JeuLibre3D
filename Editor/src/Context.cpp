@@ -18,11 +18,13 @@ namespace KGR
 
             m_toolbar = std::make_unique<Toolbar>(&m_editorScene);
             m_hierarchy = std::make_unique<HierarchyPanel>(&m_editorScene);
-            m_inspector = std::make_unique<InspectorPanel>(&m_editorScene);
-            m_viewport = std::make_unique<Viewport>(m_imGui, m_vulkan);
+            m_inspector = std::make_unique<InspectorPanel>(this, &m_editorScene);
+            m_viewport = std::make_unique<Viewport>(this, m_imGui, m_vulkan);
             m_menuBar = std::make_unique<MenuBar>(
                 [this](const std::filesystem::path& p) { SaveScene(p); },
                 [this](const std::filesystem::path& p) { LoadScene(p); });
+
+            m_lastActiveScene = m_toolbar->GetActiveScene();
 
             m_camera = CameraComponent::Create(
                 45.0f,
@@ -51,6 +53,7 @@ namespace KGR
         {
             m_menuBar->Render();
 
+            HandleUndoRedoShortcuts();
             HandleResize();
 
             Layer::BeginDockspace();
@@ -58,6 +61,12 @@ namespace KGR
             m_toolbar->Render();
 
             Scene* activeScene = m_toolbar->GetActiveScene();
+            if (m_lastActiveScene != activeScene)
+            {
+                m_undoManager.Clear();
+                m_lastActiveScene = activeScene;
+            }
+
             m_hierarchy->SetScene(activeScene);
             m_inspector->SetScene(activeScene);
 
@@ -128,8 +137,31 @@ namespace KGR
             RegisterSerializer();
 
             m_picker.ClearSelection();
+            m_undoManager.Clear();
 
             Serializer::Load(m_editorScene, path);
+            m_lastActiveScene = m_toolbar ? m_toolbar->GetActiveScene() : &m_editorScene;
+        }
+
+        void Context::HandleUndoRedoShortcuts()
+        {
+            ImGuiIO& io = ImGui::GetIO();
+            if (!io.KeyCtrl || io.WantTextInput)
+                return;
+
+            const bool undoKey = ImGui::IsKeyPressed(ImGuiKey_Z, false);
+
+            if (undoKey)
+            {
+                if (io.KeyShift)
+                    m_undoManager.Redo();
+                else
+                    m_undoManager.Undo();
+                return;
+            }
+
+            if (ImGui::IsKeyPressed(ImGuiKey_Y, false))
+                m_undoManager.Redo();
         }
 
         Scene* Context::GetActiveScene() const 
@@ -155,6 +187,11 @@ namespace KGR
         Offscreen& Context::GetOffscreen() 
         {
             return m_offscreen;
+        }
+
+        UndoManager& Context::GetUndoManager()
+        {
+            return m_undoManager;
         }
 
         glm::vec2 Context::GetViewportPos() const

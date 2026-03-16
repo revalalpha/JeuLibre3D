@@ -1,4 +1,5 @@
 #include "Viewport.h"
+#include "Context.h"
 #include "CollisionComponent.h"
 #include "Backends/imgui_impl_vulkan.h"
 #include <glm/gtc/type_ptr.hpp>
@@ -8,8 +9,8 @@ namespace KGR
 {
     namespace Editor
     {
-        Viewport::Viewport(KGR::_ImGui::ImGuiCore& imgui, KGR::_Vulkan::VulkanCore& vulkanCore)
-            : m_ImGui(imgui), m_VulkanCore(vulkanCore)
+        Viewport::Viewport(Context* context, KGR::_ImGui::ImGuiCore& imgui, KGR::_Vulkan::VulkanCore& vulkanCore)
+            : m_context(context), m_ImGui(imgui), m_VulkanCore(vulkanCore)
         {
         }
 
@@ -195,6 +196,7 @@ namespace KGR
                 return;
 
             auto& transform = reg.GetComponent<TransformComponent>(primary);
+            const TransformComponent transformBefore = transform;
 
             glm::mat4 view = cam->GetView();
             glm::mat4 proj = cam->GetProj();
@@ -227,6 +229,30 @@ namespace KGR
                     transform.SetRotation(glm::radians(glm::vec3(r[0], r[1], r[2])));
                 if (op == ImGuizmo::SCALE)
                     transform.SetScale(glm::vec3(s[0], s[1], s[2]) * 2.0f);
+            }
+
+            const bool gizmoUsing = ImGuizmo::IsUsing();
+            if (gizmoUsing && !m_GizmoEditing)
+            {
+                m_GizmoEditing = true;
+                m_GizmoEditedEntity = primary;
+                m_GizmoEditedScene = scene;
+                m_GizmoInitialTransform = transformBefore;
+            }
+
+            if (!gizmoUsing && m_GizmoEditing)
+            {
+                if (m_context
+                    && m_GizmoEditedScene
+                    && m_GizmoEditedScene->GetRegistry().HasComponent<TransformComponent>(m_GizmoEditedEntity))
+                {
+                    auto& finalTransform = m_GizmoEditedScene->GetRegistry().GetComponent<TransformComponent>(m_GizmoEditedEntity);
+                    m_context->GetUndoManager().RecordEdit(m_GizmoEditedScene, m_GizmoEditedEntity, m_GizmoInitialTransform, finalTransform);
+                }
+
+                m_GizmoEditing = false;
+                m_GizmoEditedEntity = NullEntity;
+                m_GizmoEditedScene = nullptr;
             }
         }
     }
