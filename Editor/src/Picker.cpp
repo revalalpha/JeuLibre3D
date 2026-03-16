@@ -28,24 +28,27 @@ namespace KGR
         float RayOBB(const Ray& ray, const OBB3D& obb)
         {
             glm::vec3 delta = ray.origin - obb.GetCenter();
-            float     tEnter = -std::numeric_limits<float>::max();
-            float     tExit = std::numeric_limits<float>::max();
+            float tEnter = -std::numeric_limits<float>::max();
+            float tExit = std::numeric_limits<float>::max();
 
             for (int i = 0; i < 3; ++i)
             {
                 glm::vec3 axis = obb.GetAxis(i);
-                float     halfSize = obb.GetHalfSize()[i];
-                float     e = glm::dot(axis, delta);
-                float     f = glm::dot(axis, ray.dir);
+                float halfSize = obb.GetHalfSize()[i];
+                float e = glm::dot(axis, delta);
+                float f = glm::dot(axis, ray.dir);
 
                 if (std::fabs(f) > 1e-6f)
                 {
                     float t1 = (-e - halfSize) / f;
                     float t2 = (-e + halfSize) / f;
-                    if (t1 > t2) std::swap(t1, t2);
+                    if (t1 > t2)
+                        std::swap(t1, t2);
+
                     tEnter = std::max(tEnter, t1);
                     tExit = std::min(tExit, t2);
-                    if (tEnter > tExit) return -1.0f;
+                    if (tEnter > tExit)
+                        return -1.0f;
                 }
                 else if (e < -halfSize || e > halfSize)
                     return -1.0f;
@@ -73,11 +76,12 @@ namespace KGR
 
             // fallback: sphere test around the entity origin
             glm::vec3 oc = ray.origin - transform.GetPosition();
-            float     b = glm::dot(oc, ray.dir);
-            float     c = glm::dot(oc, oc) - fallbackRadius * fallbackRadius;
-            float     disc = b * b - c;
+            float b = glm::dot(oc, ray.dir);
+            float c = glm::dot(oc, oc) - fallbackRadius * fallbackRadius;
+            float disc = b * b - c;
 
-            if (disc < 0.0f) return -1.0f;
+            if (disc < 0.0f) 
+                return -1.0f;
 
             float sq = std::sqrt(disc);
             float t0 = -b - sq;

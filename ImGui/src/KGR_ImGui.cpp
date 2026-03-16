@@ -44,32 +44,27 @@ void KGR::_ImGui::ImGuiCore::UpdateCamera(float deltaTime)
     if (!m_Camera || !m_CamTransform || !m_Window)
         return;
 
-    bool rightHeld = glfwGetMouseButton(&m_Window->GetWindow(), GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
-    if (rightHeld)
-    {
-        glm::dvec2 mousePos;
-        glfwGetCursorPos(&m_Window->GetWindow(), &mousePos.x, &mousePos.y);
+    ImGuiIO& io = ImGui::GetIO();
 
+    if (ImGui::IsMouseDown(ImGuiMouseButton_Right))
+    {
         if (!m_IsRightClickActive)
         {
-            m_LastMousePos = mousePos;
             m_IsRightClickActive = true;
             glfwSetInputMode(&m_Window->GetWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         }
-        else
-        {
-            glm::dvec2 delta = mousePos - m_LastMousePos;
-            m_LastMousePos = mousePos;
 
-            m_Yaw -= glm::radians(static_cast<float>(delta.x) * m_MouseSensitivity);
-            m_Pitch -= glm::radians(static_cast<float>(delta.y) * m_MouseSensitivity);
-            m_Pitch = glm::clamp(m_Pitch, glm::radians(-89.0f), glm::radians(89.0f));
+        ImVec2 delta = io.MouseDelta;
 
-            glm::quat yawQuat = glm::angleAxis(m_Yaw, glm::vec3(0.0f, 1.0f, 0.0f));
-            glm::quat pitchQuat = glm::angleAxis(m_Pitch, glm::vec3(1.0f, 0.0f, 0.0f));
-            m_CamTransform->SetOrientation(yawQuat * pitchQuat);
-            m_Camera->UpdateCamera(m_CamTransform->GetFullTransform());
-        }
+        m_Yaw -= glm::radians(delta.x * m_MouseSensitivity);
+        m_Pitch -= glm::radians(delta.y * m_MouseSensitivity);
+        m_Pitch = glm::clamp(m_Pitch, glm::radians(-89.0f), glm::radians(89.0f));
+
+        glm::quat yawQuat = glm::angleAxis(m_Yaw, glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::quat pitchQuat = glm::angleAxis(m_Pitch, glm::vec3(1.0f, 0.0f, 0.0f));
+
+        m_CamTransform->SetOrientation(yawQuat * pitchQuat);
+        m_Camera->UpdateCamera(m_CamTransform->GetFullTransform());
     }
     else if (m_IsRightClickActive)
     {
@@ -77,23 +72,22 @@ void KGR::_ImGui::ImGuiCore::UpdateCamera(float deltaTime)
         glfwSetInputMode(&m_Window->GetWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     }
 
-    if (ImGui::GetIO().WantCaptureKeyboard)
+    if (io.WantCaptureKeyboard || io.KeyCtrl)
         return;
 
     glm::vec3 move(0.0f);
 
-    // NEED TO CHANGE THIS INTO OUR OWN KEY
-    if (glfwGetKey(&m_Window->GetWindow(), GLFW_KEY_W) == GLFW_PRESS)
+    if (ImGui::IsKeyDown(ImGuiKey_Z))
         move += m_CamTransform->GetLocalAxe<RotData::Dir::Forward>();
-    if (glfwGetKey(&m_Window->GetWindow(), GLFW_KEY_S) == GLFW_PRESS)
+    if (ImGui::IsKeyDown(ImGuiKey_S))
         move -= m_CamTransform->GetLocalAxe<RotData::Dir::Forward>();
-    if (glfwGetKey(&m_Window->GetWindow(), GLFW_KEY_A) == GLFW_PRESS)
+    if (ImGui::IsKeyDown(ImGuiKey_Q))
         move -= m_CamTransform->GetLocalAxe<RotData::Dir::Right>();
-    if (glfwGetKey(&m_Window->GetWindow(), GLFW_KEY_D) == GLFW_PRESS)
+    if (ImGui::IsKeyDown(ImGuiKey_D))
         move += m_CamTransform->GetLocalAxe<RotData::Dir::Right>();
-    if (glfwGetKey(&m_Window->GetWindow(), GLFW_KEY_Q) == GLFW_PRESS)
+    if (ImGui::IsKeyDown(ImGuiKey_A))
         move += glm::vec3(0.0f, 1.0f, 0.0f);
-    if (glfwGetKey(&m_Window->GetWindow(), GLFW_KEY_E) == GLFW_PRESS)
+    if (ImGui::IsKeyDown(ImGuiKey_E))
         move -= glm::vec3(0.0f, 1.0f, 0.0f);
 
     if (glm::length(move) > 0.0f)

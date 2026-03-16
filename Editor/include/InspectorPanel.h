@@ -9,6 +9,8 @@ namespace KGR
 {
     namespace Editor
     {
+        class Context;
+
         /**
          * @brief properties panel for the selected entity
          *
@@ -18,7 +20,7 @@ namespace KGR
         {
         public:
             /** @param scene pointer to the active scene */
-            explicit InspectorPanel(Scene* scene);
+            explicit InspectorPanel(Context* context, Scene* scene);
 
             /**
              * @brief draws the inspector for the given entity
@@ -35,6 +37,7 @@ namespace KGR
             void DrawRegisteredComponents(SceneEntity e);
 
             Scene* m_scene = nullptr;
+            Context* m_context;
         };
     }
 }

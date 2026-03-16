@@ -42,7 +42,9 @@ using ReadComponentFn = std::function<void(SceneEntity e, SceneRegistry& reg,
     const nlohmann::json& in,
     const IndexToHandle& toHandle)>;
 
-/** @brief write and read lambdas for one component type */
+/*
+* @brief write and read lambdas for one component type
+*/
 struct ComponentSerializerEntry
 {
     WriteComponentFn write;
@@ -84,10 +86,14 @@ public:
      */
     std::vector<SceneEntity> GetRootEntities();
 
-    /** @return all registered inspector draw functions */
+    /*
+    * @return all registered inspector draw functions
+    */
     const std::vector<std::pair<std::string, InspectorFunction>>& GetInspectorRegistry() const;
 
-    /** @return all registered serializer entries */
+    /*
+    * @return all registered serializer entries
+    */
     const std::vector<ComponentSerializerEntry>& GetSerializerRegistry() const;
 
     /**

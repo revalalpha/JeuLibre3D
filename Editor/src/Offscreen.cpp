@@ -18,6 +18,7 @@ namespace KGR
         {
             if (m_width == width && m_height == height)
                 return;
+
             Destroy(device);
             CreateResources(device, physDevice, pool, width, height, m_colorFormat, VK_FORMAT_D32_SFLOAT);
         }

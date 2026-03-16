@@ -12,6 +12,8 @@ namespace KGR
 {
     namespace Editor
     {
+        class Context;
+
         /** @brief the three transform manipulation modes */
         enum class GizmoMode
         { 
@@ -24,7 +26,7 @@ namespace KGR
         class Viewport
         {
         public:
-            Viewport(KGR::_ImGui::ImGuiCore& imgui, KGR::_Vulkan::VulkanCore& vulkanCore);
+            Viewport(Context* context, KGR::_ImGui::ImGuiCore& imgui, KGR::_Vulkan::VulkanCore& vulkanCore);
 
             /**
              * @brief draws the viewport window, outlines and gizmo
@@ -62,6 +64,7 @@ namespace KGR
             void DrawGizmo(SceneEntity e, Scene* scene, CameraComponent* cam);
             void DrawOutlines(const Picker& picker, Scene* scene, CameraComponent* cam);
 
+            Context* m_context = nullptr;
             KGR::_ImGui::ImGuiCore& m_ImGui;
             KGR::_Vulkan::VulkanCore& m_VulkanCore;
 
@@ -75,6 +78,10 @@ namespace KGR
             bool m_WasResized = false;
 
             GizmoMode m_GizmoMode = GizmoMode::Translate;
+            bool m_GizmoEditing = false;
+            SceneEntity m_GizmoEditedEntity = NullEntity;
+            Scene* m_GizmoEditedScene = nullptr;
+            TransformComponent m_GizmoInitialTransform;
         };
     }
 }

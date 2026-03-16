@@ -16,6 +16,7 @@
 #include "MenuBar.h"
 #include <memory>
 #include <filesystem>
+#include "UndoManager.h"
 
 namespace KGR
 {
@@ -72,6 +73,7 @@ namespace KGR
             CameraComponent& GetCamera();
             TransformComponent& GetCamTransform();
             Offscreen& GetOffscreen();
+            UndoManager& GetUndoManager();
             glm::vec2 GetViewportPos() const;
             glm::vec2 GetViewportSize() const;
 
@@ -79,6 +81,7 @@ namespace KGR
             void RegisterClone();
             void RegisterInspector();
             void RegisterSerializer();
+            void HandleUndoRedoShortcuts();
 
             KGR::_ImGui::ImGuiCore& m_imGui;
             KGR::_Vulkan::VulkanCore& m_vulkan;
@@ -95,6 +98,8 @@ namespace KGR
             Offscreen m_offscreen;
             CameraComponent m_camera;
             TransformComponent m_cameraTransform;
+            UndoManager m_undoManager;
+            Scene* m_lastActiveScene = nullptr;
         };
     }
 }

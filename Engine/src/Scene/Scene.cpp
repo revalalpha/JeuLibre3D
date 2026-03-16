@@ -68,7 +68,7 @@ SceneEntity Scene::FindByName(const std::string& name)
     return NullEntity;
 }
 
-SceneRegistry& Scene::GetRegistry() 
+SceneRegistry& Scene::GetRegistry()
 { 
     return m_registry;
 }
