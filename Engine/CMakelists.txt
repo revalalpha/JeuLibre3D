@@ -70,6 +70,11 @@ set(VulkanLib ${VulkanSDK_DIR}/Lib)
 #      DESTINATION "${EXECUTABLE_OUTPUT_PATH}/Release")
 
 
+set(SoLoud_Dir ${CMAKE_CURRENT_SOURCE_DIR}/../External/SoLoud)
+set(SoLoudHeader ${SoLoud_Dir}/Includes)
+set(SoLoudLib ${SoLoud_Dir}/Lib)
+
+
 # target your All Include here 
 # exemple bellow
 
@@ -77,6 +82,7 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC 
     ${HEADER_DIR}
       ${VukanHeader}
+      ${SoLoudHeader}
      ${CMAKE_CURRENT_SOURCE_DIR}/../External/STB/Includes
     ${CMAKE_CURRENT_SOURCE_DIR}/../External/TOL/Includes
 
@@ -92,6 +98,7 @@ target_link_libraries(${PROJECT_NAME}
     PUBLIC
     glfw
     Vulkan
+     ${SoLoudLib}/soloud_static_x64.lib
     ${VulkanLib}/vulkan-1.lib
   # YourLib
   # ${MYLIB_LIB}/YourLib.lib

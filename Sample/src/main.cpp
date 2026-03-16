@@ -15,15 +15,18 @@
 #include "ECS/Registry.h"
 #include "Tools/Chrono.h"
 
+#include "Core/SoundComponent.h"
+
 // make you ecs type with entity 8 / 16 / 32 / 64 and the size of allocation between 1 and infinity
 using ecsType = KGR::ECS::Registry<KGR::ECS::Entity::_64, 100>;
 
 int main(int argc, char** argv)
 {
+	
 	// this part is due to the archi of the code to retrieve the folder resources
 	std::filesystem::path exePath = argv[0];
 	std::filesystem::path projectRoot = exePath.parent_path().parent_path().parent_path().parent_path().parent_path();
-
+	WavComponent::Init(projectRoot / "Ressources");
 	// init the rendering system ( init glfw )
 	KGR::RenderWindow::Init();
 	// create your window with the size the name and the resources path
@@ -35,7 +38,11 @@ int main(int argc, char** argv)
 	// create your ecs 
 	ecsType registry = ecsType{};
 
-
+	// test music 
+	WavComponent c;
+	c.SetWav(WavManager::Load("Sounds/test.mp3"));
+	c.SetVolume(10.0f);
+	c.Play();
 	// camera 
 	{
 		// a calera need a cameraComponent that can be orthographic or perspective and a transform
