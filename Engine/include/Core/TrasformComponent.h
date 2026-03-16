@@ -252,7 +252,7 @@ private:
     DataDirty<glm::vec3> m_position = { true, glm::vec3{0,0,0} };
     glm::mat4 m_positionMat = glm::mat4{ 1.0f };
 
-    DataDirty<glm::vec3> m_scale = { true, glm::vec3{1,1,1} };
+    DataDirty<glm::vec3> m_scale = { true, glm::vec3{0.5f,0.5f,0.5f} };
     glm::mat4 m_scaleMat = glm::mat4{ 1.0f };
 
     glm::mat4 m_fullTransform = glm::mat4{ 1.0f };
@@ -266,9 +266,8 @@ private:
 template <RotData::Orientation orientation, IsValidRep rep>
 void TransformComponent::RotateQuat(float angleRad)
 {
-    m_rotation.data = glm::normalize(
-        glm::rotate(m_rotation.data, angleRad, RotData::ToAxes<orientation, rep>())
-    );
+    glm::quat deltaRotation = glm::angleAxis(angleRad, RotData::ToAxes<orientation, rep>());
+    m_rotation.data = glm::normalize( m_rotation.data * deltaRotation);
     UpdateEulerAngle();
     m_rotation.isDirty = true;
 }
@@ -277,7 +276,10 @@ template <IsValidRep rep>
 void TransformComponent::LookAt(const glm::vec3& target)
 {
     glm::vec3 forward = glm::normalize(target - m_position.data);
-    m_rotation.data = glm::quatLookAt(forward, RotData::ToVector<RotData::Dir::Up, rep>());
+    auto up = RotData::ToVector<RotData::Dir::Up, rep>();
+    if (abs(glm::dot(forward, up)) > 0.999f)
+        up = RotData::ToVector<RotData::Dir::Forward, rep>();
+    m_rotation.data = glm::quatLookAt(forward, up);
     UpdateEulerAngle();
     m_rotation.isDirty = true;
 }
@@ -286,7 +288,10 @@ template <IsValidRep rep>
 void TransformComponent::LookAtDir(const glm::vec3& target)
 {
     glm::vec3 forward = glm::normalize(target - glm::vec3{ 0,0,0 });
-    m_rotation.data = glm::quatLookAt(forward, RotData::ToVector<RotData::Dir::Up, rep>());
+    auto up = RotData::ToVector<RotData::Dir::Up, rep>();
+    if (abs(glm::dot(forward, up)) > 0.999f)
+        up = RotData::ToVector<RotData::Dir::Forward, rep>();
+    m_rotation.data = glm::quatLookAt(forward, up);
     UpdateEulerAngle();
     m_rotation.isDirty = true;
 }

@@ -48,6 +48,7 @@ struct Vertex
         };
     }
 
+    
     /**
      * @brief Equality operator for hashing and deduplication.
      *
@@ -57,7 +58,7 @@ struct Vertex
     {
         return pos == other.pos &&
             color == other.color &&
-            uv == other.uv;
+            uv == other.uv && normal == other.normal;
     }
 };
 
@@ -76,6 +77,51 @@ struct std::hash<Vertex>
 };
 
 
+struct Vertex2D
+{
+    glm::vec2 pos;
+    glm::vec2 uv;
+
+    static vk::VertexInputBindingDescription getBindingDescription()
+    {
+        return { 0, sizeof(Vertex2D), vk::VertexInputRate::eVertex };
+    }
+
+    static std::vector<vk::VertexInputAttributeDescription> getAttributeDescriptions()
+    {
+        return {
+            vk::VertexInputAttributeDescription(
+                0, 0, vk::Format::eR32G32Sfloat, offsetof(Vertex2D, pos)),
+            vk::VertexInputAttributeDescription(
+                1, 0, vk::Format::eR32G32Sfloat, offsetof(Vertex2D, uv))
+        };
+    }
+
+};
+
+struct UiData
+{
+    struct UiValidData
+    {
+        glm::vec4 color = { 1,1,1,1 };
+        glm::vec4 raw1;
+        glm::vec4 raw2;
+        glm::vec4 raw3;
+
+
+    };
+    glm::vec4 color = { 1,1,1,1 };
+    glm::mat3 model = glm::identity<glm::mat3>();
+    UiValidData GetValid() const 
+    {
+        return UiValidData{
+            .color = color,
+            .raw1 = glm::vec4(model[0][0], model[1][0], model[2][0], 1.0f),
+        	.raw2 = glm::vec4(model[0][1], model[1][1], model[2][1], 1.0f),
+			.raw3 = glm::vec4(model[0][2], model[1][2], model[2][2], 1.0f)
+        };
+    }
+};
 
 /**
  * @brief Simple vertex used for line rendering (debug segments, gizmos, etc.).

@@ -30,6 +30,7 @@
 #include "Core/LightComponent.h"
 #include "Core/TrasformComponent.h"
 #include "Core/Vertex.h"
+#include "../../Editor/include/Offscreen.h"
 
 struct Texture;
 struct CameraComponent;
@@ -114,7 +115,7 @@ namespace KGR
 			 * @return Descriptor set associated with the image.
 			 */
 			DescriptorSet CreateSetForImage(Image* image);
-
+			/*DescriptorSet CreateSetForImageUi(Image* image);*/
 			/**
 			 * @brief Creates a vertex buffer from a vector of vertices.
 			 * @tparam VertexT Type of vertex.
@@ -185,14 +186,14 @@ namespace KGR
 			 * @param texture Vector of textures for the mesh
 			 */
 			void RegisterRender(Mesh& mesh, const glm::mat4& model, std::vector<Texture*>& texture);
-
+			void RegisterUi(const UiData& data, Texture* texture,const glm::vec2& screenSize);
 			/**
 			 * @brief Performs rendering of registered meshes, lights, and optionally ImGui data.
 			 * @param window GLFW window pointer
 			 * @param clearColor Color to clear the screen
 			 * @param imguiDraw Optional ImGui draw data
 			 */
-			void Render(GLFWwindow* window, const glm::vec4& clearColor = { 0,0,0,1 }, ImDrawData* imguiDraw = nullptr);
+			void Render(GLFWwindow* window, const glm::vec4& clearColor = { 0,0,0,1 }, ImDrawData* imguiDraw = nullptr, KGR::Editor::Offscreen* offscreen = nullptr);
 
 		private:
 
@@ -200,6 +201,8 @@ namespace KGR
 			int EndRendering(GLFWwindow* window, vk::raii::CommandBuffer* currentBuffer, const std::vector<vk::Semaphore>& waitS, ImDrawData* imguiDraw = nullptr);
 			void recreateSwapChain(GLFWwindow* window);
 			std::uint32_t PresentImage();
+
+			void RenderSceneToOffscreen(KGR::Editor::Offscreen& target, const glm::vec4& clearColor, vk::raii::CommandBuffer* cmd);
 
 			void LoadModel();
 
@@ -227,10 +230,13 @@ namespace KGR
 			ImagesViews            swapChainImageViews;
 
 			DescriptorLayouts descriptorSetLayout;
+			DescriptorLayouts uiLayout;
 			DescriptorPool descriptorPool;
 			DescriptorSet descriptorSets;
 			Pipeline               graphicsPipeline;
 			Pipeline               linePipeLine;
+			Pipeline               uiPipeline;
+
 			DebugRenderer          debugRenderer;
 
 			CommandBuffers commandBuffers;
@@ -254,6 +260,13 @@ namespace KGR
 			Buffer m_lightCount;
 			std::optional<UniformBufferObject> m_ubo;
 			std::vector<MeshData> m_toRenderObject;
+			std::vector<std::pair<Texture*, UiData::UiValidData>> uIRender;
+
+
+
+			Buffer uiVertexBuffer;
+			Buffer uiIndexBuffer;
+
 		};
 
 		template <typename VertexT>
