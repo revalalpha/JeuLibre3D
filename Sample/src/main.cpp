@@ -51,7 +51,7 @@ int main(int argc, char** argv)
 	c.SetVolume(10.0f);
 
 	// TODO play the music for test 
-	//c.Play();
+	c.Play();
 
 	// music test do not mind
 		
