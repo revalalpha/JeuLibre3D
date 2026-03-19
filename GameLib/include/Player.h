@@ -18,6 +18,6 @@ public:
 	~Player() = default;
 
 	void CreatePlayer(ecsType& registry, KGR::RenderWindow& window);
-	void Update(float deltaTime);
+	void Update(ecsType& registry, float deltaTime);
 private:
 };

@@ -31,7 +31,7 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 	TextureComponent texture;
 	texture.SetSize(meshComp.mesh->GetSubMeshesCount());
 	for (int i = 0; i < meshComp.mesh->GetSubMeshesCount(); ++i)
-		texture.AddTexture(i, &TextureLoader::Load("Textures\\BaseTexture.png", window.App()));
+		texture.AddTexture(i, &TextureLoader::Load("Textures\\rouge.jpg", window.App()));
 
 	CollisionComp collider;
 	collider.collider = &ColliderManager::Load("playerCollider", meshComp.mesh);
@@ -61,9 +61,15 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 	registry.AddComponents<CameraComponent, TransformComponent, CarCameraComponent>(cam, std::move(camComp), std::move(camTransform), std::move(follow));
 }
 
-void Player::Update(float deltaTime)
+void Player::Update(ecsType& registry, float deltaTime)
 {
+	glm::vec3 playerPos{ 0.0f };
 	{
-		
+		auto view = registry.GetAllComponentsView<PlayerComponent, TransformComponent>();
+		for (auto e : view)
+		{
+			playerPos = registry.GetComponent<TransformComponent>(e).GetPosition();
+			break;
+		}
 	}
 }

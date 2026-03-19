@@ -17,36 +17,36 @@ void CameraSystem::Update(ecsType& registry, float deltaTime)
 		auto& follow = registry.GetComponent<CarCameraComponent>(camEntity);
 		auto& camTransform = registry.GetComponent<TransformComponent>(camEntity);
 
-		// Skip if the target entity doesn't exist or doesn't have a TransformComponent
+		//Skip if the target entity doesn't exist or doesn't have a TransformComponent
 		if (!registry.HasComponent<TransformComponent>(follow.target))
 			continue;
 
 		auto& carTransform = registry.GetComponent<TransformComponent>(follow.target);
 
-		// Get car's position and orientation
+		//Car position and orientation
 		glm::vec3 carPos = carTransform.GetPosition();
 		glm::vec3 forward = -carTransform.GetLocalAxe<RotData::Dir::Forward>();
 		glm::vec3 right = carTransform.GetLocalAxe<RotData::Dir::Right>();
 
 		glm::vec3 targetPos = carPos - forward * follow.distance + glm::vec3(0, follow.height, 0);
 
-		// Add drift influence to camera position
+		//Drift influence to camera position
 		if (registry.HasComponent<DriftComponent>(follow.target))
 		{
 			auto& drift = registry.GetComponent<DriftComponent>(follow.target);
 			targetPos += right * drift.driftFactor * follow.driftInfluence;
 		}
 
-		// Smoothly interpolate camera position
+		//Smoothly interpolate camera position
 		glm::vec3 currentPos = camTransform.GetPosition();
 		glm::vec3 newPos = glm::mix(currentPos, targetPos, deltaTime * follow.smooth);
 		camTransform.SetPosition(newPos);
 
-		// Calculate look direction and target rotation
+		//Calculate look direction and target rotation
 		glm::vec3 lookDir = glm::normalize(carPos - newPos);
 		glm::quat targetRot = glm::quatLookAt(lookDir, { 0,1,0 });
 
-		// Smoothly interpolate camera rotation
+		//Smoothly interpolate camera rotation
 		glm::quat currentRot = camTransform.GetOrientation();
 		glm::quat newRot = glm::slerp(currentRot, targetRot, deltaTime * follow.lookSmooth);
 		camTransform.SetOrientation(newRot);

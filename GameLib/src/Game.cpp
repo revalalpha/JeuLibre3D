@@ -26,6 +26,7 @@
 #include "Track.h"
 #include "GameSystems/CameraSystem.h"
 #include "GameSystems/CarControlSystem.h"
+#include "GameRenderer.h"
 
 void Game::Init(const std::string& fp)
 {
@@ -43,7 +44,7 @@ void Game::Init(const std::string& fp)
 	Track track;
 	track.CreateTrack(registry, *window);
 
-	/*KGR::Tools::Random rd;
+	KGR::Tools::Random rd;
 	auto yScale = rd.getRandomNumberRange(5.0f, 100.0f, 8);
 
 	auto colorTransform = [](const glm::vec3& color)
@@ -57,7 +58,7 @@ void Game::Init(const std::string& fp)
 		TransformComponent lTransform;
 		lTransform.LookAt({ 1,-1,0 });
 		registry.AddComponents<LightComponent<LightData::Type::Directional>, TransformComponent>(light, std::move(lComp), std::move(lTransform));
-	}*/
+	}
 }
 
 void Game::UpdateGame(float dt)
@@ -71,17 +72,9 @@ void Game::UpdateGame(float dt)
 	CarControlSystem carControl;
 	carControl.Update(registry, *window, dt);
 
-
 	//Player pos
-	glm::vec3 playerPos{ 0.0f };
-	{
-		auto view = registry.GetAllComponentsView<PlayerComponent, TransformComponent>();
-		for (auto e : view)
-		{
-			playerPos = registry.GetComponent<TransformComponent>(e).GetPosition();
-			break;
-		}
-	}
+	Player player;
+	player.Update(registry, dt);
 
 	bool gameOver = false;
 
@@ -133,42 +126,13 @@ void Game::Run(const KGR::Tools::Chrono<float>::Time& fixedTime)
 
 void Game::Render()
 {
-	{
-		auto es = registry.GetAllComponentsView<CameraComponent, TransformComponent>();
-		if (es.Size() != 1)
-			throw std::runtime_error("need one and one cam");
-		for (auto& e : es)
-		{
-			registry.GetComponent<CameraComponent>(e).UpdateCamera(registry.GetComponent<TransformComponent>(e).GetFullTransform());
-			window->RegisterCam(registry.GetComponent<CameraComponent>(e), registry.GetComponent<TransformComponent>(e));
-		}
-	}
-
+	GameRenderer renderer;
+	// Render Cam
+	renderer.RenderCam(registry, *window);
 	// Render Mesh
-	{
-		auto es = registry.GetAllComponentsView<MeshComponent, TransformComponent, TextureComponent>();
-		for (auto& e : es)
-			window->RegisterRender(
-				registry.GetComponent<MeshComponent>(e),
-				registry.GetComponent<TransformComponent>(e),
-				registry.GetComponent<TextureComponent>(e));
-	}
-
-	{
-		auto es = registry.GetAllComponentsView<LightComponent<LightData::Type::Point>, TransformComponent>();
-		for (auto& e : es)
-			window->RegisterLight(registry.GetComponent<LightComponent<LightData::Type::Point>>(e), registry.GetComponent<TransformComponent>(e));
-	}
-	{
-		auto es = registry.GetAllComponentsView<LightComponent<LightData::Type::Spot>, TransformComponent>();
-		for (auto& e : es)
-			window->RegisterLight(registry.GetComponent<LightComponent<LightData::Type::Spot>>(e), registry.GetComponent<TransformComponent>(e));
-	}
-	{
-		auto es = registry.GetAllComponentsView<LightComponent<LightData::Type::Directional>, TransformComponent>();
-		for (auto& e : es)
-			window->RegisterLight(registry.GetComponent<LightComponent<LightData::Type::Directional>>(e), registry.GetComponent<TransformComponent>(e));
-	}
+	renderer.RenderMesh(registry, *window);
+	// Render Light
+	renderer.RenderLight(registry, *window);
 
 	window->Render({ 0.53f, 0.81f, 0.92f, 1.0f });
 }
