@@ -20,7 +20,13 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 
 	//Mesh
 	MeshComponent meshComp;
-	meshComp.mesh = &MeshLoader::Load("Models\\280z.obj", window.App());
+	meshComp.mesh = &MeshLoader::Load("Models\\Car\\Body\\celicaBody.obj", window.App());
+
+	//MeshComponent R_FrontWheels;
+	//R_FrontWheels.mesh = &MeshLoader::Load("Models\\Car\\", window.App());
+
+	//MeshComponent L_FrontWheels;
+	//L_FrontWheels.mesh = &MeshLoader::Load("Models\\Car\\", window.App());
 
 	//Transform
 	TransformComponent carTransform;
@@ -41,6 +47,24 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 		(player, std::move(meshComp), std::move(carTransform), std::move(texture), ControllerComponent{},
 			CarControllerComponent{}, DriftComponent{}, PlayerComponent{}, std::move(collider));
 
+
+	auto backWheelsEntity = registry.CreateEntity();
+
+	MeshComponent backWheels;
+	backWheels.mesh = &MeshLoader::Load("Models\\Car\\Wheels\\BackWheels.obj", window.App());
+
+	TransformComponent bWheelsTransform;
+	bWheelsTransform.SetPosition({ 0, 0, 0 });
+	bWheelsTransform.SetRotation({ 0, glm::radians(180.0f), 0 });
+
+	TextureComponent WheelsTexture;
+	WheelsTexture.SetSize(backWheels.mesh->GetSubMeshesCount());
+	for (int i = 0; i < backWheels.mesh->GetSubMeshesCount(); ++i)
+		WheelsTexture.AddTexture(i, &TextureLoader::Load("Textures\\rouge.jpg", window.App()));
+
+	registry.AddComponents<MeshComponent, TransformComponent, TextureComponent>
+		(backWheelsEntity, std::move(backWheels), std::move(bWheelsTransform), std::move(WheelsTexture));
+
 	auto cam = registry.CreateEntity();
 
 	//Camera
@@ -53,8 +77,8 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 	//Car Camera component
 	CarCameraComponent follow;
 	follow.target = player;
-	follow.distance = 6.0f;
-	follow.height = 2.0f;
+	follow.distance = 4.0f;
+	follow.height = 1.5f;
 	follow.smooth = 8.0f;
 	follow.lookSmooth = 12.0f;
 
@@ -64,6 +88,7 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 void Player::Update(ecsType& registry, float deltaTime)
 {
 	glm::vec3 playerPos{ 0.0f };
+	glm::vec3 bWheelsPos{ playerPos };
 	{
 		auto view = registry.GetAllComponentsView<PlayerComponent, TransformComponent>();
 		for (auto e : view)
