@@ -16,4 +16,6 @@ struct CarControllerComponent
 	float coefAccel_2 = 1.0f;
 	float backWheel_Speed = 0.0f;
 	float reverse_Speed = -5.0f;
+
+	float currentVisualSteer = 0.0f;
 };
