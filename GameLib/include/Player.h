@@ -19,5 +19,7 @@ public:
 
 	void CreatePlayer(ecsType& registry, KGR::RenderWindow& window);
 	void Update(ecsType& registry, float deltaTime);
+
+	float wheelRollingAngle = 0.0f;
 private:
 };

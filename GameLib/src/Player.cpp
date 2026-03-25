@@ -30,7 +30,7 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 
 	//Transform
 	TransformComponent carTransform;
-	carTransform.SetPosition({ 0, 0, 0 });
+	carTransform.SetPosition({ 0.f, 0.3f, 0.f });
 	carTransform.SetRotation({ 0, glm::radians(180.0f), 0 });
 
 	//Texture
@@ -54,16 +54,18 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 	backWheels.mesh = &MeshLoader::Load("Models\\Car\\Wheels\\BackWheels.obj", window.App());
 
 	TransformComponent bWheelsTransform;
-	bWheelsTransform.SetPosition({ 0, 0, 0 });
-	bWheelsTransform.SetRotation({ 0, glm::radians(180.0f), 0 });
+	bWheelsTransform.SetPosition({ 0.f, 0.f, 0.f });
+	bWheelsTransform.SetRotation({ 0, glm::radians(180.0f), 0});
 
 	TextureComponent WheelsTexture;
 	WheelsTexture.SetSize(backWheels.mesh->GetSubMeshesCount());
 	for (int i = 0; i < backWheels.mesh->GetSubMeshesCount(); ++i)
 		WheelsTexture.AddTexture(i, &TextureLoader::Load("Textures\\rouge.jpg", window.App()));
 
-	registry.AddComponents<MeshComponent, TransformComponent, TextureComponent>
-		(backWheelsEntity, std::move(backWheels), std::move(bWheelsTransform), std::move(WheelsTexture));
+	registry.AddComponents<MeshComponent, TransformComponent, TextureComponent, ControllerComponent,
+		CarControllerComponent, DriftComponent, PlayerComponent>
+		(backWheelsEntity, std::move(backWheels), std::move(bWheelsTransform), std::move(WheelsTexture), ControllerComponent{},
+			CarControllerComponent{}, DriftComponent{}, PlayerComponent{});
 
 	auto cam = registry.CreateEntity();
 
@@ -87,14 +89,46 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 
 void Player::Update(ecsType& registry, float deltaTime)
 {
-	glm::vec3 playerPos{ 0.0f };
-	glm::vec3 bWheelsPos{ playerPos };
+	glm::vec3 carPos{ 0.0f };
+	glm::vec3 carRot{ 0.0f };
+
+	wheelRollingAngle += deltaTime * 10.0f;
 	{
 		auto view = registry.GetAllComponentsView<PlayerComponent, TransformComponent>();
 		for (auto e : view)
 		{
-			playerPos = registry.GetComponent<TransformComponent>(e).GetPosition();
-			break;
+			if (registry.HasComponent<CollisionComp>(e))
+			{
+				carPos = registry.GetComponent<TransformComponent>(e).GetPosition();
+				carRot = registry.GetComponent<TransformComponent>(e).GetRotation();
+				break;
+			}
+		}
+
+		for (auto e : view)
+		{
+			if (!registry.HasComponent<CollisionComp>(e))
+			{
+				auto& wheelTr = registry.GetComponent<TransformComponent>(e);
+
+				glm::vec3 LocalOffset{ -0.04f, 0.0f, -1.25f };
+				glm::mat4 rotationMatrix = glm::mat4(1.0f);
+				rotationMatrix = glm::rotate(rotationMatrix, carRot.y, glm::vec3(0, 1, 0));
+				rotationMatrix = glm::rotate(rotationMatrix, carRot.x, glm::vec3(1, 0, 0));
+				rotationMatrix = glm::rotate(rotationMatrix, carRot.z, glm::vec3(0, 0, 1));
+
+				glm::vec3 rotateOffset = glm::vec3(rotationMatrix * glm::vec4(LocalOffset, 1.0f));
+
+				wheelTr.SetPosition(carPos + rotateOffset);
+
+				glm::mat4 combinedRotation = rotationMatrix;
+				combinedRotation = glm::rotate(combinedRotation, wheelRollingAngle, glm::vec3(1, 0, 0));
+
+				glm::quat qRotation = glm::quat(combinedRotation);
+				glm::vec3 finalRotation = glm::eulerAngles(qRotation);
+
+				wheelTr.SetRotation(finalRotation);
+			}
 		}
 	}
 }
