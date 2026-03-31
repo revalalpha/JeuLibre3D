@@ -118,9 +118,15 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 	CarCameraComponent follow;
 	follow.target = player;
 	follow.distance = 4.0f;
+	follow.baseDistance = 4.0f;
+	follow.minDistance = 1.0f;
 	follow.height = 1.5f;
 	follow.smooth = 8.0f;
 	follow.lookSmooth = 12.0f;
+	follow.fov = 45.0f;
+	follow.baseFov = 45.0f;
+	follow.speedInfluence = 0.01f;
+	follow.speedDistanceInfluence = 0.09f;
 
 	registry.AddComponents<CameraComponent, TransformComponent, CarCameraComponent>(cam, std::move(camComp), std::move(camTransform), std::move(follow));
 }
