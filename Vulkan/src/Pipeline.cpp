@@ -9,8 +9,6 @@
 
 KGR::_Vulkan::Pipeline::Pipeline(const ShaderInfo& shaderInfo, Device* device, SwapChain* swapChain, DescriptorLayouts* layouts, PhysicalDevice* phDevice, vk::PolygonMode mode, const vk::VertexInputBindingDescription& vInput, const std::vector < vk::VertexInputAttributeDescription>& attributes)
 {
-
-	//
 	auto& file = FileManager::Load(shaderInfo.ShaderPath);
 	file.seekg(0, std::ios::end);
 	auto fileSize = file.tellg();
@@ -29,7 +27,7 @@ KGR::_Vulkan::Pipeline::Pipeline(const ShaderInfo& shaderInfo, Device* device, S
 	vk::PipelineShaderStageCreateInfo fragShaderStageInfo{ .stage = vk::ShaderStageFlagBits::eFragment, .module = shaderModule, .pName = shaderInfo.fragmentMain };
 	vk::PipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
 
-	auto                                     bindingDescription =vInput;
+	auto                                     bindingDescription = vInput;
 	auto                                     attributeDescriptions = attributes;
 	vk::PipelineVertexInputStateCreateInfo vertexInputInfo{
 			.vertexBindingDescriptionCount = 1,

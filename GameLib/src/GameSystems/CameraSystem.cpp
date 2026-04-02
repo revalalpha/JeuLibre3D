@@ -4,6 +4,7 @@
 #include "GameComponents/DriftComponent.h"
 #include "GameComponents/CarControllerComponent.h"
 #include "Core/TrasformComponent.h"
+#include "GameComponents/WheelComponent.h"
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
 
@@ -30,12 +31,30 @@ void CameraSystem::Update(ecsType& registry, float deltaTime)
 
 		glm::vec3 targetPos = carPos - forward * follow.distance + glm::vec3(0, follow.height, 0);
 
-		//Drift influence to camera position
-		if (registry.HasComponent<DriftComponent>(follow.target))
-		{
-			auto& drift = registry.GetComponent<DriftComponent>(follow.target);
-			targetPos += right * drift.driftFactor * follow.driftInfluence;
-		}
+		//Steering influence
+        float steerAngle = 0.0f;
+        auto wheels = registry.GetAllComponentsView<WheelComponent>();
+        for (auto w : wheels)
+        {
+            auto& wheel = registry.GetComponent<WheelComponent>(w);
+            if (wheel.isSteerable)
+                steerAngle = wheel.steerAngle;
+        }
+
+		follow.smoothedSteer = glm::mix(follow.smoothedSteer, steerAngle, deltaTime * follow.steerSmooth);
+
+		float angle = 30.0f;
+        float maxSteer = glm::radians(angle);
+		float steerFactor = follow.smoothedSteer / maxSteer;
+
+        targetPos += right * steerFactor * follow.steerInfluence;
+
+        //Drift influence
+        if (registry.HasComponent<DriftComponent>(follow.target))
+        {
+            auto& drift = registry.GetComponent<DriftComponent>(follow.target);
+            targetPos += right * drift.driftFactor * follow.driftInfluence;
+        }
 
 		//Smoothly interpolate camera position
 		glm::vec3 currentPos = camTransform.GetPosition();
@@ -43,12 +62,16 @@ void CameraSystem::Update(ecsType& registry, float deltaTime)
 		camTransform.SetPosition(newPos);
 
 		//Calculate look direction and target rotation
-		glm::vec3 lookDir = glm::normalize(carPos - newPos);
-		glm::quat targetRot = glm::quatLookAt(lookDir, { 0,1,0 });
+		glm::vec3 rawLookDir = glm::normalize(carPos - newPos);
+		rawLookDir.x *= 0.98f;
+		rawLookDir.y *= 0.78f;
+		follow.smoothedLookDir = glm::mix(follow.smoothedLookDir, rawLookDir, deltaTime * follow.lookSmooth);
+		follow.smoothedLookDir = glm::normalize(follow.smoothedLookDir);
 
-		//Smoothly interpolate camera rotation
+		glm::quat targetRot = glm::quatLookAt(follow.smoothedLookDir, { 0,1,0 });
 		glm::quat currentRot = camTransform.GetOrientation();
-		glm::quat newRot = glm::slerp(currentRot, targetRot, deltaTime * follow.lookSmooth);
+		glm::quat newRot = glm::slerp(currentRot, targetRot, deltaTime * follow.lookSmooth * 0.5f);
+
 		camTransform.SetOrientation(newRot);
 	}
 }

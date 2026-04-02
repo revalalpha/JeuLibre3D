@@ -13,4 +13,9 @@ struct CarCameraComponent
 	float lookSmooth = 12.0f;       ///< smoothing factor for camera rotation when looking at the target
 	float driftInfluence = 1.5f;    ///< drift influence on camera angle (0 = no influence, 1 = full influence)
 	float speedInfluence = 0.02f;   ///< dynamic FOV influence based on car speed (0 = no influence, higher = more FOV increase at high speeds)
+	float steerInfluence = 0.5f;    ///< influence of steering angle on camera position (0 = no influence, 1 = full influence)
+	float smoothedSteer = 0.0f;     ///< smoothed steering angle for camera adjustments
+	float steerSmooth = 15.0f;      ///< smoothing factor for steering influence on camera
+
+	glm::vec3 smoothedLookDir = glm::vec3(0, 0, 1);
 };

@@ -4,6 +4,8 @@
 #include "Core/Texture.h"
 #include "Core/ManagerImple.h"
 #include "Core/Window.h"
+#include "Math/Collision.h"
+#include "Math/CollisionComponent.h"
 
 void Track::SpawnRoadPieces(ecsType& registry, KGR::RenderWindow& window, const TrackComponent& track)
 {
@@ -16,7 +18,7 @@ void Track::SpawnRoadPieces(ecsType& registry, KGR::RenderWindow& window, const 
         mesh.mesh = roadMesh;
 
         TransformComponent transform;
-        transform.SetScale({ track.trackWidth, 0.01f, track.step * 10.0f });
+        transform.SetScale({ track.trackWidth, track.step, track.step * 40.0f });
         transform.SetPosition(track.sampledPoints[i]);
 
         // RMF orientation
@@ -28,8 +30,69 @@ void Track::SpawnRoadPieces(ecsType& registry, KGR::RenderWindow& window, const 
             texture.AddTexture(j, &TextureLoader::Load("Textures\\BaseTexture.png", window.App()));
 
         registry.AddComponents<MeshComponent, TransformComponent, TextureComponent>(
-            e, std::move(mesh), std::move(transform), std::move(texture)
-        );
+            e, std::move(mesh), std::move(transform), std::move(texture));
+
+		//Walls genration
+        glm::vec3 forward = track.frames[i].forward;
+        glm::vec3 up = track.frames[i].up;
+        glm::vec3 right = glm::normalize(glm::cross(forward, up));
+
+        float halfWidth = track.trackWidth * 0.5f;
+
+		//Left wall
+        {
+            auto wall = registry.CreateEntity();
+
+            MeshComponent mesh;
+            mesh.mesh = &MeshLoader::Load("Models\\CUBE.obj", window.App());
+
+            TextureComponent texture;
+            texture.SetSize(mesh.mesh->GetSubMeshesCount());
+            for (int j = 0; j < mesh.mesh->GetSubMeshesCount(); ++j)
+                texture.AddTexture(j, &TextureLoader::Load("Textures\\BaseTexture.png", window.App()));
+
+            CollisionComp collider;
+            collider.collider = new Collider();
+
+            collider.collider->localBox.m_min = glm::vec3(-0.1f, 0.0f, -0.5f);
+            collider.collider->localBox.m_max = glm::vec3(0.1f, 2.0f, 0.5f);
+
+            TransformComponent tr;
+            tr.SetScale({ 0.2f, 2.0f, track.step * 20.0f });
+            tr.SetPosition(track.sampledPoints[i] - right * halfWidth);
+            tr.SetOrientation(glm::quatLookAt(forward, up));
+
+
+            registry.AddComponents<MeshComponent, TransformComponent, TextureComponent, CollisionComp>(
+                wall, std::move(mesh), std::move(tr), std::move(texture), std::move(collider));
+        }
+
+		//Right wall
+        {
+            auto wall = registry.CreateEntity();
+
+            MeshComponent mesh;
+            mesh.mesh = &MeshLoader::Load("Models\\CUBE.obj", window.App());
+
+            TextureComponent texture;
+            texture.SetSize(mesh.mesh->GetSubMeshesCount());
+            for (int j = 0; j < mesh.mesh->GetSubMeshesCount(); ++j)
+                texture.AddTexture(j, &TextureLoader::Load("Textures\\BaseTexture.png", window.App()));
+
+            CollisionComp collider;
+            collider.collider = new Collider();
+
+            collider.collider->localBox.m_min = glm::vec3(-0.1f, 0.0f, -0.5f);
+            collider.collider->localBox.m_max = glm::vec3(0.1f, 2.0f, 0.5f);
+
+            TransformComponent tr;
+            tr.SetScale({ 0.2f, 2.0f, track.step * 20.0f });
+            tr.SetPosition(track.sampledPoints[i] + right * halfWidth);
+            tr.SetOrientation(glm::quatLookAt(forward, up));
+
+            registry.AddComponents<MeshComponent, TransformComponent, TextureComponent, CollisionComp>(
+                wall, std::move(mesh), std::move(tr), std::move(texture), std::move(collider));
+        }
     }
 }
 

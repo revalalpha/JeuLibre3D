@@ -26,7 +26,13 @@
 #include "Track.h"
 #include "GameSystems/CameraSystem.h"
 #include "GameSystems/CarControlSystem.h"
+#include "GameSystems/CarPhysicsSystem.h"
+#include "GameSystems/WheelSystem.h"
+#include "GameSystems/DriftSystem.h"
+#include "GameSystems/CarCollisionSystem.h"
+#include "Core/InputManager.h"
 #include "GameRenderer.h"
+#include "DebugRenderer.h"
 
 void Game::Init(const std::string& fp)
 {
@@ -63,11 +69,10 @@ void Game::Init(const std::string& fp)
 
 void Game::UpdateGame(float dt)
 {
-
 	//Camera control
 	CameraSystem camSystem;
 	camSystem.Update(registry, dt);
-	
+
 	//Car control
 	CarControlSystem carControl;
 	carControl.Update(registry, *window, dt);
@@ -75,6 +80,28 @@ void Game::UpdateGame(float dt)
 	//Player pos
 	Player player;
 	player.Update(registry, dt);
+
+	//Wheel physic
+	WheelSystem wheelSystem;
+	wheelSystem.Update(registry, dt);
+	wheelSystem.Visualize(registry, dt);
+
+	//Car physics
+	CarPhysicsSystem carPhysic;
+	carPhysic.Update(registry, dt);
+
+	//Drift
+	DriftSystem driftSystem;
+	driftSystem.Update(registry, dt);
+
+	static bool debugCollision = false;
+
+	if (window->GetInputManager()->IsKeyPressed(KGR::Key::E))
+		debugCollision = !debugCollision;
+
+	CarCollisionSystem collisionSystem;
+	collisionSystem.Update(registry, *window, dt, debugCollision);
+
 
 	bool gameOver = false;
 
@@ -99,6 +126,8 @@ void Game::Run(const KGR::Tools::Chrono<float>::Time& fixedTime)
 	auto lag = 0.0f;
 	while (!window->ShouldClose())
 	{
+		window->App()->GetDebugRenderer().BeginFrame();
+
 		// lag incrementation 
 		const float startframetime = clock.GetElapsedTime().AsMilliSeconds();
 		const auto elapsed = startframetime - previous;
