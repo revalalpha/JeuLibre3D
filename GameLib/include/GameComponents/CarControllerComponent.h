@@ -22,5 +22,8 @@ struct CarControllerComponent
 
 	float maxSpeed = 0.0f;       ///< The maximum speed the car can reach
 	float speed = 0.0f;          ///< The current speed of the car, updated by the physics system
+
+	float maxSpeed = 0.0f;       ///< The maximum speed the car can reach
+	float speed = 0.0f;          ///< The current speed of the car, updated by the physics system
 	float turnSpeed = 2.0f;      ///< Turning speed multiplier for steering input (higher = more responsive steering)
 };

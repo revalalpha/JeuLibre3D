@@ -27,5 +27,4 @@ struct CarCameraComponent
 	float steerSmooth = 15.0f;      ///< smoothing factor for steering influence on camera
 
 	glm::vec3 smoothedLookDir = glm::vec3(0, 0, 1);
-
 };

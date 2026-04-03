@@ -49,6 +49,30 @@ void CameraSystem::Update(ecsType& registry, float deltaTime)
 			targetFov = follow.baseFov + speed * follow.speedInfluence;
 			targetFov = glm::clamp(targetFov, follow.baseFov, follow.baseFov * 30.0f);
 		}
+		//Steering influence
+        float steerAngle = 0.0f;
+        auto wheels = registry.GetAllComponentsView<WheelComponent>();
+        for (auto w : wheels)
+        {
+            auto& wheel = registry.GetComponent<WheelComponent>(w);
+            if (wheel.isSteerable)
+                steerAngle = wheel.steerAngle;
+        }
+
+		follow.smoothedSteer = glm::mix(follow.smoothedSteer, steerAngle, deltaTime * follow.steerSmooth);
+
+		float angle = 30.0f;
+        float maxSteer = glm::radians(angle);
+		float steerFactor = follow.smoothedSteer / maxSteer;
+
+        targetPos += right * steerFactor * follow.steerInfluence;
+
+        //Drift influence
+        if (registry.HasComponent<DriftComponent>(follow.target))
+        {
+            auto& drift = registry.GetComponent<DriftComponent>(follow.target);
+            targetPos += right * drift.driftFactor * follow.driftInfluence;
+        }
 
 		glm::vec3 targetPos = carPos - forward * targetDistance + glm::vec3(0, follow.height, 0);
 

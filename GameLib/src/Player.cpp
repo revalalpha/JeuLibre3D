@@ -13,6 +13,8 @@
 #include "GameComponents/CarControllerComponent.h"
 #include "GameComponents/DriftComponent.h"
 #include "GameComponents/CarCameraComponent.h"
+#include "GameComponents/CarPhysicsComponent.h"
+#include "GameComponents/WheelComponent.h"
 
 #include "GameComponents/NameTagComponent.h"
 
@@ -34,6 +36,7 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 
 	meshComp.mesh = &MeshLoader::Load("Models\\Car\\celicaBody.obj", window.App());
 
+	meshComp.mesh = &MeshLoader::Load("Models\\Car\\celicaBody.obj", window.App());
 
 	//Transform
 	TransformComponent carTransform;
@@ -122,6 +125,8 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 			CarControllerComponent{}, DriftComponent{}, PlayerComponent{}, TagComponent{ EntityTag::Left_FrontWheel });
 
 	CarControllerComponent, DriftComponent, CarPhysicsComponent, PlayerComponent, CollisionComp>
+		(player, std::move(meshComp), std::move(carTransform), std::move(texture), ControllerComponent{},
+		CarControllerComponent, DriftComponent, CarPhysicsComponent, PlayerComponent, CollisionComp>
 		(player, std::move(meshComp), std::move(carTransform), std::move(texture), ControllerComponent{},
 		CarControllerComponent{}, DriftComponent{}, std::move(carPhysic), PlayerComponent{}, std::move(collider));
 
