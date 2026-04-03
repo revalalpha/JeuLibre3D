@@ -27,6 +27,9 @@
 #include "GameSystems/CameraSystem.h"
 #include "GameSystems/CarControlSystem.h"
 #include "GameRenderer.h"
+#include "GameAudio.h"
+
+GameAudio gameAudio;
 
 void Game::Init(const std::string& fp)
 {
@@ -39,6 +42,9 @@ void Game::Init(const std::string& fp)
 	//Player
 	Player player;
 	player.CreatePlayer(registry, *window);
+
+	//Audio
+	gameAudio.Create(registry);
 
 	//Track
 	Track track;
@@ -75,6 +81,9 @@ void Game::UpdateGame(float dt)
 	//Player pos
 	Player player;
 	player.Update(registry, dt);
+
+	//Game Audio
+	gameAudio.Update(registry, dt);
 
 	bool gameOver = false;
 
