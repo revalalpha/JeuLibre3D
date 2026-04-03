@@ -2,6 +2,8 @@
 #include "ECS/Registry.h"
 #include "Core/Window.h"
 #include "Core/CameraComponent.h"
+#include "VulkanCore.h"
+#include "VertexDebug.h"
 
 void GameRenderer::RenderMesh(ecsType& registry, KGR::RenderWindow& window)
 {

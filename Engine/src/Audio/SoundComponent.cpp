@@ -47,6 +47,16 @@ void KGR::Audio::WavComponent::Play()
 	m_handle = static_cast<int>(m_music.play(*m_wav));
 }
 
+void KGR::Audio::WavComponent::PlayAt(float time)
+{
+	ErrorValidWav();
+	if(IsPlaying())
+		Stop();
+
+	m_handle = static_cast<int>(m_music.play(*m_wav));
+	m_music.seek(m_handle, time);
+}
+
 void KGR::Audio::WavComponent::Pause()
 {
 	ErrorValidWav();

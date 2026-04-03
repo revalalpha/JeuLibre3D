@@ -75,6 +75,11 @@ namespace KGR
             void Play();
 
             /**
+             * @brief Starts playback of the sound at a time gived.
+             */
+            void PlayAt(float time);
+
+            /**
              * @brief Pauses the sound if it is currently playing.
              */
             void Pause();
