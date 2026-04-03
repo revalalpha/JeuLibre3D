@@ -13,7 +13,12 @@
 #include "GameComponents/CarControllerComponent.h"
 #include "GameComponents/DriftComponent.h"
 #include "GameComponents/CarCameraComponent.h"
+
 #include "GameComponents/NameTagComponent.h"
+
+#include "GameComponents/CarPhysicsComponent.h"
+#include "GameComponents/WheelComponent.h"
+
 
 void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 {
@@ -21,10 +26,14 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 
 	//Mesh
 	MeshComponent meshComp;
+
 	meshComp.mesh = &MeshLoader::Load("Models\\Car\\Body\\celicaBody.obj", window.App());
 
 	//MeshComponent L_FrontWheels;
 	//L_FrontWheels.mesh = &MeshLoader::Load("Models\\Car\\", window.App());
+
+	meshComp.mesh = &MeshLoader::Load("Models\\Car\\celicaBody.obj", window.App());
+
 
 	//Transform
 	TransformComponent carTransform;
@@ -38,7 +47,14 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 		texture.AddTexture(i, &TextureLoader::Load("Textures\\rouge.jpg", window.App()));
 
 	CollisionComp collider;
-	collider.collider = &ColliderManager::Load("playerCollider", meshComp.mesh);
+	collider.collider = new Collider();
+
+	collider.collider->localBox.m_min = glm::vec3(-0.905f, -0.505f, -2.215f);
+	collider.collider->localBox.m_max = glm::vec3(0.905f, 0.505f, 2.215f);
+
+
+	CarPhysicsComponent carPhysic;
+	carPhysic.wheels.reserve(4);
 
 	registry.AddComponents<MeshComponent, TransformComponent, TextureComponent, ControllerComponent,
 		CarControllerComponent, DriftComponent, PlayerComponent, CollisionComp, TagComponent>
@@ -104,6 +120,49 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 		CarControllerComponent, DriftComponent, PlayerComponent, TagComponent>
 		(leftWheelEntity, std::move(L_FrontWheel), std::move(lWheelTransform), std::move(LWheelsTexture), ControllerComponent{},
 			CarControllerComponent{}, DriftComponent{}, PlayerComponent{}, TagComponent{ EntityTag::Left_FrontWheel });
+
+	CarControllerComponent, DriftComponent, CarPhysicsComponent, PlayerComponent, CollisionComp>
+		(player, std::move(meshComp), std::move(carTransform), std::move(texture), ControllerComponent{},
+		CarControllerComponent{}, DriftComponent{}, std::move(carPhysic), PlayerComponent{}, std::move(collider));
+
+	auto createWheel = [&](const std::string& path, glm::vec3 offset, bool driven, bool steerable)
+		{
+			auto w = registry.CreateEntity();
+
+			MeshComponent mesh;
+			mesh.mesh = &MeshLoader::Load(path, window.App());
+
+			TransformComponent transform;
+			transform.SetPosition(offset);
+
+			TextureComponent texture;
+			texture.SetSize(mesh.mesh->GetSubMeshesCount());
+			for (int i = 0; i < mesh.mesh->GetSubMeshesCount(); ++i)
+				texture.AddTexture(i, &TextureLoader::Load("Textures/rouge.jpg", window.App()));
+
+			WheelComponent wheel;
+			wheel.isDriven = driven;
+			wheel.isSteerable = steerable;
+			wheel.visualOffset = offset;
+			wheel.carBody = player;
+
+			registry.AddComponents<
+				MeshComponent, TransformComponent, TextureComponent, WheelComponent>
+				(w, std::move(mesh), std::move(transform), std::move(texture), std::move(wheel));
+
+			return w;
+		};
+
+	//Create the four wheels with appropriate offsets and properties
+	auto frontLeft = createWheel("Models/Car/Left_FrontWheel.obj", { 0.4f, 0.0f, 0.0f }, false, true);
+	auto frontRight = createWheel("Models/Car/Right_FrontWheel.obj", { -0.4f, 0.0f, 0.0f }, false, true);
+	auto backWheels = createWheel("Models/Car/BackWheels.obj", { -0.04f, 0.0f, -1.25f }, true, false);
+
+	//Link wheels to the car physics component
+	auto& phys = registry.GetComponent<CarPhysicsComponent>(player);
+	phys.wheels.push_back(frontLeft);
+	phys.wheels.push_back(frontRight);
+	phys.wheels.push_back(backWheels);
 
 	auto cam = registry.CreateEntity();
 

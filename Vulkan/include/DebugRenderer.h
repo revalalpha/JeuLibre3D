@@ -95,6 +95,11 @@ namespace KGR
 			 */
 			const DebugRenderer& Get() const;
 
+			Buffer& GetBuffer();
+			const Buffer& GetBuffer() const;
+			size_t GetVertexCount();
+			const size_t GetVertexCount() const;
+
 			/**
 			 * @brief Uploads accumulated debug vertices to the GPU buffer.
 			 */

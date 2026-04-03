@@ -1,12 +1,12 @@
 #pragma once
 #include "ECS/Registry.h"
 #include "ECS/Entities.h"
-#include "GameComponents/CarControllerComponent.h"
-#include "GameComponents/DriftComponent.h"
+
+//All the physics of the car
 
 using ecsType = KGR::ECS::Registry<KGR::ECS::Entity::_64, 100>;
 
-struct DriftSystem
+struct CarPhysicsSystem
 {
 	void Update(ecsType& registry, float deltaTime);
 };

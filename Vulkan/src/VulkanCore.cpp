@@ -60,6 +60,8 @@ void KGR::_Vulkan::VulkanCore::initVulkan(GLFWwindow* window)
 		.fragmentMain = "fragMain"
 	};
 
+	debugRenderer = DebugRenderer(&device, &physicalDevice);
+
 	// Layouts 
 	std::vector<vk::DescriptorSetLayoutBinding> bindings = {
 			vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eVertex, nullptr)
@@ -823,6 +825,13 @@ void KGR::_Vulkan::VulkanCore::Render(GLFWwindow* window, const glm::vec4& color
 		currentBuffer->drawIndexed(36, 1, 0, 0, 0);
 	}
 
+	// --- DEBUG RENDER ---
+	/*debugRenderer.Upload();
+	currentBuffer->bindPipeline(vk::PipelineBindPoint::eGraphics, *linePipeLine.Get());
+	vk::DeviceSize offset = 0;
+	currentBuffer->bindVertexBuffers(0, *debugRenderer.GetBuffer().Get(), offset);
+	currentBuffer->draw(static_cast<uint32_t>(debugRenderer.GetVertexCount()), 1, 0, 0);*/
+
 	EndRendering(window, currentBuffer, { syncObject.GetCurrentPresentSemaphore() }, imguiDraw);
 	commandBuffers.ReleaseCommandBuffer(*currentBuffer);
 	syncObject.IncrementFrame();
@@ -933,7 +942,5 @@ const KGR::_Vulkan::DebugRenderer& KGR::_Vulkan::VulkanCore::GetDebugRenderer() 
 {
 	return debugRenderer;
 }
-
-
 
 //IMPL
