@@ -91,6 +91,11 @@ bool KGR::Audio::WavComponent::IsPlaying() const
 	return m_handle != -1 && m_music.isValidVoiceHandle(m_handle);
 }
 
+bool KGR::Audio::WavComponent::IsValid() const
+{
+	return m_wav != nullptr;
+}
+
 void KGR::Audio::WavComponent::ErrorValidWav() const
 {
 	if (!m_wav)

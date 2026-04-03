@@ -88,7 +88,7 @@ void CarPhysicsSystem::Update(ecsType& registry, float dt)
 
         
         //Update
-        float steerSpeed = glm::clamp(speed, 10.0f, 40.0f);
+        float steerSpeed = glm::clamp(speed, 10.0f, 140.0f);
         float yaw = control.steering * steerSpeed * 0.0012f;
         float currentYaw = transform.GetRotation().y;
 

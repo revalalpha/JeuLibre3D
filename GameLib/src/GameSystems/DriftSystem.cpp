@@ -23,7 +23,7 @@ void DriftSystem::Update(ecsType& registry, float dt)
         float speed = glm::length(glm::vec2(vLocal.x, vLocal.z));
 
 		//Stteer angle contribution
-        float angle = 30.0f;
+        float angle = 280.0f;
         float maxSteerAngle = glm::radians(angle);
         float steerSigned = 0.0f;
 
@@ -46,11 +46,11 @@ void DriftSystem::Update(ecsType& registry, float dt)
         float delta = std::atan2(std::sin(targetAngle - currentAngle),
             std::cos(targetAngle - currentAngle));
 
-        float angleSigned = glm::clamp(delta / 1.2f, -1.0f, 1.0f);
+        float angleSigned = glm::clamp(delta / 0.6f, -1.0f, 1.0f);
 
-        float slipSigned = glm::clamp(vLocal.x / 8.0f, -1.0f, 1.0f);
+        float slipSigned = glm::clamp(vLocal.x / 4.0f, -1.0f, 1.0f);
 
-        float driftRaw = steerSigned * 0.4f + angleSigned * 0.4f + slipSigned * 0.6f;
+        float driftRaw = steerSigned * 0.4f + angleSigned * 0.4f + slipSigned * 1.2f;
 
         drift.driftFactor = glm::clamp(driftRaw, -1.0f, 1.0f);
 

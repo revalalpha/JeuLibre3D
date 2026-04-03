@@ -15,7 +15,6 @@ struct CarCameraComponent
 	float lookSmooth = 12.0f;       ///< smoothing factor for camera rotation when looking at the target
 	float driftInfluence = 1.5f;    ///< drift influence on camera angle (0 = no influence, 1 = full influence)
 
-	float speedInfluence = 0.01f;   ///< dynamic FOV influence based on car speed (0 = no influence, higher = more FOV increase at high speeds)
 	float fov = 45.0f;
 	float baseFov = 45.0f;
 	float pivotOffset = 2.0f;

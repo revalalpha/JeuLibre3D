@@ -22,6 +22,9 @@ void CarAudioSystem::Update(ecsType& registry, float deltaTime, float timer)
 		else if (car.acceleration < 0.0f)
 			newState = CarState::Braking;
 
+		if (timer >= 16.0f)
+			newState = CarState::MaxAccelerating;
+
 		// Transition de son uniquement si l'état change
 		if (newState != audio.state)
 		{
@@ -32,7 +35,9 @@ void CarAudioSystem::Update(ecsType& registry, float deltaTime, float timer)
 
 			case CarState::Accelerating :
 				audio.accelSound.Stop();
-				//audio.ExhaustedTurboSound.Stop();
+
+				//if(audio.turboSound.IsPlaying())
+				//	audio.turboSound.Stop();
 				break;
 
 			case CarState::Decelerating :
@@ -40,6 +45,8 @@ void CarAudioSystem::Update(ecsType& registry, float deltaTime, float timer)
 				break;
 
 			case CarState::Braking : audio.brakingSound.Stop(); break;
+
+			case CarState::MaxAccelerating: audio.maxAccelSound.Stop(); break;
 			}
 
 			// Jouer le nouveau son
@@ -50,15 +57,18 @@ void CarAudioSystem::Update(ecsType& registry, float deltaTime, float timer)
 
 			case CarState::Accelerating :
 				audio.accelSound.PlayAt(timer);
-				//audio.ChargingTurboSound.Play();
+				//if(!audio.turboSound.IsPlaying())
+				//	audio.turboSound.Play();
 				break;
 
 			case CarState::Decelerating :
+				audio.decelSound.SetVolume(car.speed / 10.f);
 				audio.decelSound.Play();
-				audio.ExhaustedTurboSound.Play();
 				break;
 
 			case CarState::Braking : audio.brakingSound.Play(); break;
+
+			case CarState::MaxAccelerating: audio.maxAccelSound.Play(); break;
 			}
 		}
 	}

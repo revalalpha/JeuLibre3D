@@ -4,7 +4,9 @@ enum struct CarState
 {
     Idle,
     Accelerating,
+    MaxAccelerating,
     Decelerating,
+    Drifting,
     Braking
 };
 
@@ -14,16 +16,19 @@ struct CarAudioComponent
 
     std::unique_ptr<SoLoud::Wav> idleWav;
     std::unique_ptr<SoLoud::Wav> accelWav;
+    std::unique_ptr<SoLoud::Wav> maxAccelWav;
     std::unique_ptr<SoLoud::Wav> decelWav;
+
     std::unique_ptr<SoLoud::Wav> brakingWav;
-    std::unique_ptr<SoLoud::Wav> ChargTurboWav;
-    std::unique_ptr<SoLoud::Wav> ExhTurboWav;
+
+    std::unique_ptr<SoLoud::Wav> turboWav;
 
     KGR::Audio::WavComponent idleSound;
     KGR::Audio::WavComponent accelSound;
+    KGR::Audio::WavComponent maxAccelSound;
     KGR::Audio::WavComponent decelSound;
+
     KGR::Audio::WavComponent brakingSound;
 
-    KGR::Audio::WavComponent ChargingTurboSound;
-    KGR::Audio::WavComponent ExhaustedTurboSound;
+    KGR::Audio::WavComponent turboSound;
 };

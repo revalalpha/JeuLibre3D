@@ -106,6 +106,8 @@ namespace KGR
              */
             bool IsPlaying() const;
 
+            bool IsValid() const;
+
             /**
              * @brief Initializes the global SoLoud engine for WAV playback.
              * @param path Path to the audio configuration or assets directory.
