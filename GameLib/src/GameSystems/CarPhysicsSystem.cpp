@@ -32,18 +32,28 @@ void CarPhysicsSystem::Update(ecsType& registry, float dt)
 
         glm::vec3 forward = -transform.GetLocalAxe<RotData::Dir::Forward>();
 
-        float tractionForce = 19000.0f;
+        float tractionForce = 17000.0f;
         float reverseForce = 12000.0f;
-        if(physic.throttle > 0.0f)
-            totalForce += forward * (physic.throttle * tractionForce);
-        else if(physic.throttle < 0.0f)
-            totalForce += forward * (physic.throttle * reverseForce);
+
+        if (!control.handBraking)
+        {
+            if (physic.throttle > 0.0f)
+                totalForce += forward * (physic.throttle * tractionForce);
+            else if (physic.throttle < 0.0f)
+                totalForce += forward * (physic.throttle * reverseForce);
+        }
 
 		//Engine braking
-        if (physic.throttle == 0.0f && vLocal.z < -0.5f)
+        if (physic.throttle == 0.0f)
         {
-            float engineBrake = 250.0f;
+            float engineBrake = 25.0f;
             totalForce -= forward * (engineBrake * glm::sign(vLocal.z));
+        }
+
+        if (control.handBraking)
+        {
+            float handBrakeForce = 8000.0f;
+            totalForce.z -= glm::sign(vLocal.z) * handBrakeForce;
         }
 
         float steerAngle = 0.0f;
@@ -68,16 +78,27 @@ void CarPhysicsSystem::Update(ecsType& registry, float dt)
             else
                 physic.slipAccumulator += dt * 3.0f;
         }
+        else if (!control.handBraking)
+        {
+            physic.slipAccumulator = glm::max(0.0f, physic.slipAccumulator - dt * 4.0f);
+        }
         else
         {
             physic.slipAccumulator = 0.0f;
         }
 
+        if (control.handBraking)
+        {
+            physic.slipAccumulator += dt * 5.0f;
+        }
+
         //Friction
         float slipExponent = 1.0f - glm::exp(-physic.slipAccumulator * 8.f);
         float frictionX = glm::mix(12.0f, 0.5f, slipExponent);
+        if (control.handBraking)
+            frictionX *= 0.15f;
 
-        float frictionZ = 4.0f;
+        float frictionZ = 18.0f;
 
         totalForce.x -= vLocal.x * frictionX;
         totalForce.z -= vLocal.z * frictionZ;
@@ -130,8 +151,10 @@ void CarPhysicsSystem::Update(ecsType& registry, float dt)
 
         
         //Update
-        float steerSpeed = glm::clamp(speed, 10.0f, 140.0f);
-        float steerFactor = 1.0f - (steerSpeed / 140.0f);
+        float minSteer = 0.0028f;
+        float maxSteer = 0.06f;
+        float steerFactor = glm::clamp(1.0f - (speed / 60.0f), 0.0f, 1.0f);
+        float steerAngleMax = glm::mix(minSteer, maxSteer, steerFactor);
 
         float smoothStep = glm::abs(control.steering) > 0.0001f ? 2.25f : 0.75f;
         physic.smoothSteering = glm::mix(physic.smoothSteering, control.steering, dt * smoothStep);
@@ -143,21 +166,25 @@ void CarPhysicsSystem::Update(ecsType& registry, float dt)
 
         float alignFactor  = 1.0f - glm::clamp(glm::abs(delta) * 0.03f, 0.0f, 1.0f);
 
-        float yaw = physic.smoothSteering * steerFactor * 0.028f * alignFactor;
+        float yaw = physic.smoothSteering * steerAngleMax * 0.62f * alignFactor;
         
-        currentYaw += yaw;
+        if(control.speed > 0.0f)
+            currentYaw += yaw;
 
-        if (speed > 2.0f || control.handBraking)
+        if (speed > 2.0f)
         {
             float lateralSlip = vLocal.x;
+            float angle = 9.0f;
 
-            float oversteerThreshold = glm::radians(10.0f);
+            float oversteerThreshold = glm::radians(angle);
             float oversteerAmount = glm::min(
                 glm::max(0.0f, glm::abs(delta) - oversteerThreshold),
                 0.4f
             );
 
-            float overSteerStrength = 1.5f;
+            float overSteerStrength = 1.8f;
+            if (control.handBraking)
+                overSteerStrength = 2.5f;
 
             currentYaw -= glm::sign(delta) * oversteerAmount * overSteerStrength * dt;
         }

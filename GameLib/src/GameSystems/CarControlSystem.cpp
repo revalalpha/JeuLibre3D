@@ -19,6 +19,7 @@ void CarControlSystem::Update(ecsType& registry, KGR::RenderWindow& window, floa
 
 		float accelerationInput = 0.0f;
 		float steeringInput = 0.0f;
+		controller.handBraking = false;
 
 		//ZQSD and brake control
 		if (input->IsKeyDown(KGR::Key::Z))
