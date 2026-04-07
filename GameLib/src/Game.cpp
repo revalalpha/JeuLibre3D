@@ -50,7 +50,7 @@ void Game::Init(const std::string& fp)
 	player.CreatePlayer(registry, *window);
 
 	//Audio
-	gameAudio.Create(registry);
+	//gameAudio.Create(registry);
 
 	//Track
 	Track track;
@@ -88,16 +88,16 @@ void Game::UpdateGame(float dt)
 	player.Update(registry, dt);
 
 	//Game Audio
-	gameAudio.Update(registry, dt);
+	//gameAudio.Update(registry, dt);
+
+	//Car physics
+	CarPhysicsSystem carPhysic;
+	carPhysic.Update(registry, dt);
 
 	//Wheel physic
 	WheelSystem wheelSystem;
 	wheelSystem.Update(registry, dt);
 	wheelSystem.Visualize(registry, dt);
-
-	//Car physics
-	CarPhysicsSystem carPhysic;
-	carPhysic.Update(registry, dt);
 
 	//Drift
 	DriftSystem driftSystem;

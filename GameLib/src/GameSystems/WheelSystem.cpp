@@ -41,8 +41,11 @@ void WheelSystem::Visualize(ecsType& registry, float deltaTime)
         glm::vec3 carPos = bodyTr.GetPosition();
         glm::vec3 carRot = bodyTr.GetRotation();
 
+        w.rollAngle += w.angularVelocity * deltaTime;
+
 		//Body rotation
-        glm::mat4 rotY = glm::rotate(glm::mat4(1.0f), carRot.y, glm::vec3(0, 1, 0));
+        glm::mat4 rotY = bodyTr.GetRotationMatrix();
+        rotY = glm::rotate(glm::mat4(1.0f), carRot.y, glm::vec3(0, 1, 0));
 
 		//Wheel position
         glm::vec3 worldOffset = glm::vec3(rotY * glm::vec4(w.visualOffset, 1.0f));
@@ -54,7 +57,7 @@ void WheelSystem::Visualize(ecsType& registry, float deltaTime)
         if (w.isSteerable)
             wheelRot = glm::rotate(wheelRot, w.steerAngle, glm::vec3(0, 1, 0));
 
-        wheelRot = glm::rotate(wheelRot, w.angularVelocity * deltaTime, glm::vec3(1, 0, 0));
+        wheelRot = glm::rotate(wheelRot, w.rollAngle, glm::vec3(1, 0, 0));
 
         transform.SetRotation(glm::eulerAngles(glm::quat(wheelRot)));
     }

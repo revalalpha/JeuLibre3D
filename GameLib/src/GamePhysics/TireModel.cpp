@@ -24,7 +24,7 @@ TireState TireModel::Compute(float Vnormal, float Vvar, float steer, float axle)
 	// Longitudinal force
 	float Fy = tireState.slipAngle * tireState.adherence * 10000.0f;
 	// Lateral force
-	float Fx = tireState.slipRatio * 6000.0f;
+	float Fx = tireState.slipRatio * 60000.0f;
 
 	// Combine forces into a single vector (x = longitudinal, y = lateral, z = vertical)
 	tireState.force = glm::vec3(Fy, 0, Fx);

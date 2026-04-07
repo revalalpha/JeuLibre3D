@@ -22,7 +22,7 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 
 	//Mesh
 	MeshComponent meshComp;
-	meshComp.mesh = &MeshLoader::Load("Models\\Car\\celicaBody.obj", window.App());
+	meshComp.mesh = &MeshLoader::Load("Models\\Car\\Body\\celica_body.obj", window.App());
 
 	//Transform
 	TransformComponent carTransform;
@@ -79,9 +79,9 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 		};
 
 	//Create the four wheels with appropriate offsets and properties
-	auto frontLeft = createWheel("Models/Car/Left_FrontWheel.obj", { 0.4f, 0.0f, 0.0f }, false, true);
-	auto frontRight = createWheel("Models/Car/Right_FrontWheel.obj", { -0.4f, 0.0f, 0.0f }, false, true);
-	auto backWheels = createWheel("Models/Car/BackWheels.obj", { -0.04f, 0.0f, -1.25f }, true, false);
+	auto frontLeft = createWheel("Models/Car/Left_FrontWheel.obj", { 0.4f, 0.0f, .65f }, false, true);
+	auto frontRight = createWheel("Models/Car/Right_FrontWheel.obj", { -0.4f, 0.0f, 0.65f }, false, true);
+	auto backWheels = createWheel("Models/Car/BackWheels.obj", { -0.029f, 0.0f, -.59f }, true, false);
 
 	//Link wheels to the car physics component
 	auto& phys = registry.GetComponent<CarPhysicsComponent>(player);
@@ -101,8 +101,8 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 	//Car Camera component
 	CarCameraComponent follow;
 	follow.target = player;
-	follow.distance = 6.0f;
-	follow.height = 2.0f;
+	follow.distance = 3.0f;
+	follow.height = 1.5f;
 	follow.smooth = 8.0f;
 	follow.lookSmooth = 12.0f;
 

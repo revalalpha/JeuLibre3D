@@ -22,10 +22,11 @@ void DriftSystem::Update(ecsType& registry, float dt)
 		//Calculate the speed in the local XZ plane
         float speed = glm::length(glm::vec2(vLocal.x, vLocal.z));
 
-		//Stteer angle contribution
+		//Steer angle contribution
         float angle = 280.0f;
         float maxSteerAngle = glm::radians(angle);
         float steerSigned = 0.0f;
+        float steerInput = 0.0f;
 
         auto wheels = registry.GetAllComponentsView<WheelComponent>();
         for (auto w : wheels)
@@ -34,6 +35,7 @@ void DriftSystem::Update(ecsType& registry, float dt)
             if (wheel.isSteerable)
             {
                 steerSigned = wheel.steerAngle / maxSteerAngle;
+                steerInput = wheel.isSteerable;
                 break;
             }
         }
@@ -41,16 +43,21 @@ void DriftSystem::Update(ecsType& registry, float dt)
 		//Angle difference contribution
         float targetAngle = std::atan2(physic.velocity.x, physic.velocity.z);
         float currentAngle = transform.GetRotation().y;
-
+        
 		//Calculate the signed angle difference in the range
         float delta = std::atan2(std::sin(targetAngle - currentAngle),
             std::cos(targetAngle - currentAngle));
 
-        float angleSigned = glm::clamp(delta / 0.6f, -1.0f, 1.0f);
-
         float slipSigned = glm::clamp(vLocal.x / 4.0f, -1.0f, 1.0f);
 
-        float driftRaw = steerSigned * 0.4f + angleSigned * 0.4f + slipSigned * 1.2f;
+        float angleSigned = glm::clamp(delta / 0.6f, -1.0f, 1.0f);
+
+        float gripThreshold = 0.3f;
+
+        if(glm::abs(slipSigned) < gripThreshold)
+            slipSigned = 0.8f;
+
+        float driftRaw = steerSigned * 0.3f + angleSigned * 0.5f + slipSigned * 0.8f;
 
         drift.driftFactor = glm::clamp(driftRaw, -1.0f, 1.0f);
 

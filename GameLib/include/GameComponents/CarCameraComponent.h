@@ -7,8 +7,8 @@
 struct CarCameraComponent
 {
 	KGR::ECS::Entity::_64 target;   ///< Target entity to follow the car
-	float distance = 6.0f;          ///< distance behind the car
-	float baseDistance = 6.0f;
+	float distance = 3.0f;          ///< distance behind the car
+	float baseDistance = 3.0f;
 	float minDistance = 3.0f;
 	float height = 2.0f;            ///< height above the car
 	float smooth = 8.0f;            ///< position smoothing factor

@@ -18,6 +18,9 @@ struct CarPhysicsComponent
     float brake = 0.0f;    ///<  0..1
     float steer = 0.0f;    ///< -1..1
 
+    float slipAccumulator = 0.0f;
+    float smoothSteering = 0.0f;
+
     // Wheels linked to this car
     std::vector<KGR::ECS::Entity::_64> wheels;
 };

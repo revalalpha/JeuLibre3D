@@ -81,6 +81,7 @@ void CameraSystem::Update(ecsType& registry, float deltaTime)
 		//Smoothly change fov
 		float currentFov = follow.fov;
 		follow.fov = glm::mix(currentFov, targetFov, deltaTime * follow.smooth);
+		follow.fov = glm::clamp(currentFov, 45.0f, 60.0f);
 		cam.SetFov(follow.fov);
 
 		//Smoothly interpolate camera position

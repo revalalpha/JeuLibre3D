@@ -10,7 +10,7 @@ struct WheelComponent
 	float angularVelocity = 0.0f;     ///< radians per second
 	float radius = 0.35f;             ///< meters
 	float speed = 0.0f;               ///< Current linear speed of the wheel in m/s (calculated from angular velocity and radius)
-
+	float rollAngle = 0.0f;
 
 	float motorTorque = 0.0f;         ///< Motor torque applied to the wheel in N·m
 	float brakeTorque = 0.0f;         ///< Brake torque applied to the wheel in N·m

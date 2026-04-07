@@ -26,12 +26,14 @@ void CarControlSystem::Update(ecsType& registry, KGR::RenderWindow& window, floa
 			accelerationInput += 1.0f;
 		}
 		if (input->IsKeyDown(KGR::Key::S))
-			accelerationInput = -1.0f;
-		/*if (input->IsKeyDown(KGR::Key::Z) && input->IsKeyDown(KGR::SpecialKey::Space))
 		{
-			accelerationInput = 1.0f;
-			accelerationInput = accelerationInput * 0.75;
-		}*/
+			accelerationInput = -1.0f;
+		}
+		if (input->IsKeyDown(KGR::SpecialKey::Space))
+		{
+			if(controller.speed > 0.0f)
+				accelerationInput -= 1.0f;
+		}
 		if (input->IsKeyDown(KGR::Key::Q))
 		{
 			steeringInput = 1.0f;
