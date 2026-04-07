@@ -17,6 +17,7 @@ struct CarAudioComponent
     std::unique_ptr<SoLoud::Wav> idleWav;
     std::unique_ptr<SoLoud::Wav> accelWav;
     std::unique_ptr<SoLoud::Wav> maxAccelWav;
+    std::unique_ptr<SoLoud::Wav> driftingWav;
     std::unique_ptr<SoLoud::Wav> decelWav;
 
     std::unique_ptr<SoLoud::Wav> brakingWav;
@@ -26,6 +27,7 @@ struct CarAudioComponent
     KGR::Audio::WavComponent idleSound;
     KGR::Audio::WavComponent accelSound;
     KGR::Audio::WavComponent maxAccelSound;
+    KGR::Audio::WavComponent driftingSound;
     KGR::Audio::WavComponent decelSound;
 
     KGR::Audio::WavComponent brakingSound;

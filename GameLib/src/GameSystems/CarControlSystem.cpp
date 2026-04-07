@@ -31,8 +31,7 @@ void CarControlSystem::Update(ecsType& registry, KGR::RenderWindow& window, floa
 		}
 		if (input->IsKeyDown(KGR::SpecialKey::Space))
 		{
-			if(controller.speed > 0.0f)
-				accelerationInput -= 1.0f;
+			controller.handBraking = true;
 		}
 		if (input->IsKeyDown(KGR::Key::Q))
 		{
