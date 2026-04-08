@@ -21,6 +21,20 @@ void KGR::Audio::WavComponent::SetLoop(bool isLooping)
 	m_wav->setLooping(isLooping);
 }
 
+void KGR::Audio::WavComponent::SetPitch(float pitch)
+{
+	ErrorValidWav();
+	if (m_handle)
+		m_music.setRelativePlaySpeed(m_handle, pitch);
+}
+
+void KGR::Audio::WavComponent::PlayLooped(float initialVolume)
+{
+	ErrorValidWav();
+	if (!m_music.isValidVoiceHandle(m_handle))
+		m_handle = m_music.playBackground(*m_wav, initialVolume);
+}
+
 bool KGR::Audio::WavComponent::IsOver() const
 {
 	ErrorValidWav();

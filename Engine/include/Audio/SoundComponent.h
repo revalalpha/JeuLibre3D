@@ -51,6 +51,10 @@ namespace KGR
              */
             void SetLoop(bool isLooping);
 
+            void SetPitch(float pitch);
+
+            void PlayLooped(float initialVolume);
+
             /**
              * @brief Checks whether the sound has finished playing.
              * @return True if playback is finished, false otherwise.

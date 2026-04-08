@@ -12,7 +12,7 @@ class GameAudio
 public:
 	void Create(ecsType& registry);
 
-	void Update(ecsType& registry, float deltaTime);
+	void Update(ecsType& registry, float deltaTime, KGR::RenderWindow& window);
 
 private:
 	float timer = 0.0f;

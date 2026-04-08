@@ -50,7 +50,7 @@ void Game::Init(const std::string& fp)
 	player.CreatePlayer(registry, *window);
 
 	//Audio
-	//gameAudio.Create(registry);
+	gameAudio.Create(registry);
 
 	//Track
 	Track track;
@@ -88,7 +88,7 @@ void Game::UpdateGame(float dt)
 	player.Update(registry, dt);
 
 	//Game Audio
-	//gameAudio.Update(registry, dt);
+	gameAudio.Update(registry, dt, *window);
 
 	//Car physics
 	CarPhysicsSystem carPhysic;

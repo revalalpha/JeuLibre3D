@@ -8,5 +8,5 @@ using ecsType = KGR::ECS::Registry<KGR::ECS::Entity::_64, 100>;
 
 struct CarAudioSystem
 {
-	void Update(ecsType& registry, float deltaTime, float timer);
+	void Update(ecsType& registry, float deltaTime, KGR::RenderWindow& window);
 };

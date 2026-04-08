@@ -11,6 +11,8 @@ struct WheelComponent
 	float radius = 0.35f;             ///< meters
 	float speed = 0.0f;               ///< Current linear speed of the wheel in m/s (calculated from angular velocity and radius)
 	float rollAngle = 0.0f;
+	float pitchAngle = 0.0f;
+	float pitchAngulerVelo = 0.0f;
 
 	float motorTorque = 0.0f;         ///< Motor torque applied to the wheel in N·m
 	float brakeTorque = 0.0f;         ///< Brake torque applied to the wheel in N·m
@@ -25,6 +27,8 @@ struct WheelComponent
 	float slipRatio = 0.0f;           ///< Slip ratio for longitudinal slip (acceleration/braking)
 	float carSpeed = 0.0f;            ///< Speed of the car at the wheel's position in m/s (used for slip calculations)
 	KGR::ECS::Entity::_64 carBody;    ///< Entity ID of the car body this wheel is attached to
+
+	float currentVisualSteer = 0.0f;
 
 	glm::vec3 visualOffset{ 0 };
 };

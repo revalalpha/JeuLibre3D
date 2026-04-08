@@ -26,14 +26,19 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 
 	//Transform
 	TransformComponent carTransform;
-	carTransform.SetPosition({ 0, 0, 0 });
+	carTransform.SetPosition({ 0, 0.2f, 0 });
 	carTransform.SetRotation({ 0, glm::radians(180.0f), 0 });
 
 	//Texture
 	TextureComponent texture;
 	texture.SetSize(meshComp.mesh->GetSubMeshesCount());
 	for (int i = 0; i < meshComp.mesh->GetSubMeshesCount(); ++i)
-		texture.AddTexture(i, &TextureLoader::Load("Textures\\rouge.jpg", window.App()));
+	{
+		texture.AddTexture(i, &TextureLoader::Load("Textures/Car/Car_Base_Color.png", window.App()));
+		//texture.AddTexture(i, &TextureLoader::Load("Textures/Car/Car_Metallic.png", window.App()));
+		//texture.AddTexture(i, &TextureLoader::Load("Textures/Car/Car_Roughness.png", window.App()));
+	}
+		
 
 	CollisionComp collider;
 	collider.collider = new Collider();
@@ -63,7 +68,7 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 			TextureComponent texture;
 			texture.SetSize(mesh.mesh->GetSubMeshesCount());
 			for (int i = 0; i < mesh.mesh->GetSubMeshesCount(); ++i)
-				texture.AddTexture(i, &TextureLoader::Load("Textures/rouge.jpg", window.App()));
+				texture.AddTexture(i, &TextureLoader::Load("Textures/Car/texture voiture.png", window.App()));
 
 			WheelComponent wheel;
 			wheel.isDriven = driven;
@@ -101,8 +106,9 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 	//Car Camera component
 	CarCameraComponent follow;
 	follow.target = player;
-	follow.distance = 3.0f;
-	follow.height = 1.5f;
+	follow.distance = 2.5f;
+	follow.baseDistance = 2.5f;
+	follow.height = 1.2f;
 	follow.smooth = 8.0f;
 	follow.lookSmooth = 12.0f;
 
