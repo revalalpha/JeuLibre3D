@@ -122,4 +122,18 @@ namespace KGR
         result.y = (m_mouseY - oldPos.y);
         return result;
     }
+
+    glm::vec2 InputManager::GetMouseNdc() const
+    {
+        int width, height;
+        glfwGetWindowSize(m_window, &width, &height);
+
+        glm::vec2 pos = GetMousePosition();
+
+        float x = (pos.x / static_cast<float>(width)) * 2.0f - 1.0f;
+        float y = 1.0f - (pos.y / static_cast<float>(height)) * 2.0f;
+
+        return { x, y };
+    }
+
 }
