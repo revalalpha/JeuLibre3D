@@ -1,6 +1,6 @@
 #include "ScoreManager.h"
 
-void ScoreManager::Run(float driftFactor, float speed, float dt)
+void ScoreManager::Update(float driftFactor, float speed, float dt)
 {
 	if (driftFactor > 0.0f)
 	{
@@ -11,6 +11,7 @@ void ScoreManager::Run(float driftFactor, float speed, float dt)
 	{
 		ResetScore(dt);
 	}
+	SetHighScore();
 }
 
 void ScoreManager::AddScore(int points)
@@ -33,4 +34,10 @@ void ScoreManager::ResetScore(float dt)
 		m_score = 0;
 		cancelTimer = 3.0f;
 	}
+}
+
+void ScoreManager::SetHighScore()
+{
+	if (m_highScore < m_score)
+		m_highScore = m_score;
 }

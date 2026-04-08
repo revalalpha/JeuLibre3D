@@ -48,7 +48,7 @@ void WheelSystem::Visualize(ecsType& registry, float deltaTime)
         glm::vec3 carRot = bodyTr.GetRotation();
 
         w.rollAngle += w.angularVelocity * deltaTime;
-        w.pitchAngle += w.pitchAngulerVelo * deltaTime;
+        w.pitchAngle += w.pitchAngulerVelo * deltaTime * 4.0f;
 
 		//Body rotation
         glm::mat4 rotY = bodyTr.GetRotationMatrix();

@@ -194,10 +194,10 @@ void CarPhysicsSystem::Update(ecsType& registry, float dt)
             float oversteerThreshold = glm::radians(angle);
             float oversteerAmount = glm::min(
                 glm::max(0.0f, glm::abs(delta) - oversteerThreshold),
-                0.4f
+                0.43f
             );
 
-            float overSteerStrength = 1.8f;
+            float overSteerStrength = 2.0f;
             if (control.handBraking)
                 overSteerStrength = 2.5f;
 

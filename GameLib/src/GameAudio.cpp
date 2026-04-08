@@ -15,11 +15,11 @@ void GameAudio::Create(ecsType& registry)
 	struct LayerDef { const char* file; float rpmMin, rpmMax, rpmFade; };
 
 	std::vector<LayerDef> defs = {
-		{ "../../Ressources/Musics/Car/Engine/SFX_Idle.wav",    600.f,  900.f, 1400.f },
-		{ "../../Ressources/Musics/Car/Engine/SFX_Low.wav",     800.f, 2000.f, 3000.f },
-		{ "../../Ressources/Musics/Car/Engine/SFX_Mid.wav",    1800.f, 3500.f, 5000.f },
-		{ "../../Ressources/Musics/Car/Engine/SFX_High.wav",   3500.f, 5500.f, 7000.f },
-		{ "../../Ressources/Musics/Car/Engine/SFX_Redline.wav",5000.f, 7000.f, 7500.f },
+		{ "../../Ressources/Musics/Car/Engine/SFX_Idle.wav",    600.f, 1000.f, 1800.f },
+		{ "../../Ressources/Musics/Car/Engine/SFX_Low.wav",    1000.f, 1800.f, 3500.f },
+		{ "../../Ressources/Musics/Car/Engine/SFX_Mid.wav",    1800.f, 3500.f, 5500.f },
+		{ "../../Ressources/Musics/Car/Engine/SFX_High.wav",   3500.f, 5500.f, 8000.f },
+		{ "../../Ressources/Musics/Car/Engine/SFX_Redline.wav",7999.f, 8000.f, 8010.f },
 	};
 
 	for (auto& def : defs)
@@ -37,19 +37,35 @@ void GameAudio::Create(ecsType& registry)
 
 	// Chargement des fichiers
 	audio.driftWav = KGR::Audio::LoadWav("../../Ressources/Musics/Car/Tire/SFX_Tire_Noise.wav");
-	audio.backfireWav = KGR::Audio::LoadWav("../../Ressources/Musics/Car/Turbo/SFX_Turbo_Exhausted.wav");
 	audio.turboWav = KGR::Audio::LoadWav("../../Ressources/Musics/Car/Turbo/SFX_Turbo_Charging.wav");
 	audio.brakingWav = KGR::Audio::LoadWav("../../Ressources/Musics/Car/Tire/SFX_Tire_Noise.wav");
 	audio.RadioWav = KGR::Audio::LoadWav("../../Ressources/Musics/Radio_TurboDrift.mp3");
 
+	audio.backfireWavs.push_back(KGR::Audio::LoadWav("../../Ressources/Musics/Car/Engine/Back Fire/SFX_BackFire_1.wav"));
+	audio.backfireWavs.push_back(KGR::Audio::LoadWav("../../Ressources/Musics/Car/Engine/Back Fire/SFX_BackFire_2.wav"));
+	audio.backfireWavs.push_back(KGR::Audio::LoadWav("../../Ressources/Musics/Car/Engine/Back Fire/SFX_BackFire_3.wav"));
+
 	//Assignation aux WavComp
 	audio.driftSound.SetWav(*audio.driftWav);
-	audio.backfireSound.SetWav(*audio.backfireWav);
 	audio.turboSound.SetWav(*audio.turboWav);
 	audio.brakingSound.SetWav(*audio.brakingWav);
 	audio.RadioSound.SetWav(*audio.RadioWav);
 
+	for (auto& w : audio.backfireWavs)
+	{
+		KGR::Audio::WavComponent sound;
+		sound.SetWav(*w);
+		audio.backfireSounds.push_back(std::move(sound));
+	}
+
+	audio.driftSound.SetLoop(true);
+	audio.brakingSound.SetLoop(true);
 	audio.RadioSound.SetLoop(true);
+
+
+	float randTimer = static_cast<float>(std::rand() % (30*60));
+	audio.RadioSound.PlayAt(randTimer);
+	audio.RadioSound.SetVolume(0.0f);
 
 	registry.AddComponents<CarAudioComponent>(playerEntity, std::move(audio));
 }
