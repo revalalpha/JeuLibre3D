@@ -7,12 +7,12 @@
 
 void GameRenderer::RenderMesh(ecsType& registry, KGR::RenderWindow& window)
 {
-	auto es = registry.GetAllComponentsView<MeshComponent, TransformComponent, TextureComponent>();
+	auto es = registry.GetAllComponentsView<MeshComponent, TransformComponent, MaterialComponent>();
 	for (auto& e : es)
 		window.RegisterRender(
 			registry.GetComponent<MeshComponent>(e),
 			registry.GetComponent<TransformComponent>(e),
-			registry.GetComponent<TextureComponent>(e));
+			registry.GetComponent<MaterialComponent>(e));
 }
 
 void GameRenderer::RenderLight(ecsType& registry, KGR::RenderWindow& window)
@@ -37,7 +37,8 @@ void GameRenderer::RenderLight(ecsType& registry, KGR::RenderWindow& window)
 void GameRenderer::RenderCam(ecsType& registry, KGR::RenderWindow& window)
 {
 	auto es = registry.GetAllComponentsView<CameraComponent, TransformComponent>();
-	if (es.Size() != 1)
+	
+	if (es.size() != 1)
 		throw std::runtime_error("need one and one cam");
 	for (auto& e : es)
 	{

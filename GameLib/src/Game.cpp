@@ -33,7 +33,6 @@
 #include "Core/InputManager.h"
 #include "GameRenderer.h"
 #include "GameAudio.h"
-#include "ScoreManager.h"
 #include "DebugRenderer.h"
 
 GameAudio gameAudio;
