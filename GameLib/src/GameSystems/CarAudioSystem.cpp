@@ -72,7 +72,7 @@ void CarAudioSystem::Update(ecsType& registry, float deltaTime, KGR::RenderWindo
         float lateralSlip = glm::abs(vLocal.x);
 
         float driftThreshold = 2.0f;
-        float driftVolume = glm::clamp((lateralSlip - driftThreshold) / 8.0f, 0.0f, 2.0f);
+        float driftVolume = glm::clamp((lateralSlip - driftThreshold) / 8.0f, 0.0f, 4.0f);
         float driftPitch = glm::mix(0.8f, 1.4f, driftVolume);
 
         if (driftVolume > 0.01f)
