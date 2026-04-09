@@ -91,7 +91,7 @@ void Track::SpawnRoadPieces(ecsType& registry, KGR::RenderWindow& window, const 
             collider.collider->localBox.m_max = glm::vec3(0.1f, 2.0f, 0.5f);
 
             TransformComponent tr;
-            tr.SetScale({ 0.2f, 2.0f, track.step * 20.0f });
+            tr.SetScale({ 0.2f, 1.5f, track.step * 20.0f });
             tr.SetPosition(track.sampledPoints[i] - right * halfWidth);
             tr.SetOrientation(glm::quatLookAt(forward, up));
 
@@ -135,7 +135,7 @@ void Track::SpawnRoadPieces(ecsType& registry, KGR::RenderWindow& window, const 
             collider.collider->localBox.m_max = glm::vec3(0.1f, 2.0f, 0.5f);
 
             TransformComponent tr;
-            tr.SetScale({ 0.2f, 2.0f, track.step * 20.0f });
+            tr.SetScale({ 0.2f, 1.5f, track.step * 20.0f });
             tr.SetPosition(track.sampledPoints[i] + right * halfWidth);
             tr.SetOrientation(glm::quatLookAt(forward, up));
 

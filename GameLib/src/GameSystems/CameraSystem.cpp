@@ -95,6 +95,7 @@ void CameraSystem::Update(ecsType& registry, float deltaTime)
 
 		//Calculate look direction and target rotation
 		float lookAhead = 1.0f;
+		float targetYawOffset = 0.0f;
 
 		if (registry.HasComponent<CarControllerComponent>(follow.target))
 		{

@@ -33,12 +33,15 @@ void CarPhysicsSystem::Update(ecsType& registry, float dt)
         glm::vec3 forward = -transform.GetLocalAxe<RotData::Dir::Forward>();
 
         float tractionForce = 17000.0f;
-        float reverseForce = 12000.0f;
+        float reverseForce = 8000.0f;
+
+        bool changingDirection = (physic.throttle > 0.01f && vLocal.z < -0.5f) || (physic.throttle < -0.01f && vLocal.z > 0.5f);
 
         if (!control.handBraking)
         {
+            float boost = changingDirection ? 1.5f : 1.0f;
             if (physic.throttle > 0.0f)
-                totalForce += forward * (physic.throttle * tractionForce);
+                totalForce += forward * (physic.throttle * tractionForce * boost);
             else if (physic.throttle < 0.0f)
                 totalForce += forward * (physic.throttle * reverseForce);
         }
@@ -60,10 +63,10 @@ void CarPhysicsSystem::Update(ecsType& registry, float dt)
                 totalForce -= forward * (engineBrake * glm::sign(forwardSpeed));
         }
 
-        if (physic.throttle >= -0.01f && physic.throttle <= 0.01f)
+        if (!changingDirection && physic.throttle >= -0.01f && physic.throttle <= 0.01f)
         {
             float coastBrake = 1.5f;
-            if (glm::abs(vLocal.z) > 0.5f)
+            if (glm::abs(vLocal.z) > 1.5f)
                 totalForce -= forward * (coastBrake * glm::sign(vLocal.z));
         }
 
@@ -91,7 +94,7 @@ void CarPhysicsSystem::Update(ecsType& registry, float dt)
         if (glm::abs(steerInput) > 0.01f)
         {
             if (physic.slipAccumulator != 0.0f && glm::sign(steerInput) != glm::sign(physic.slipAccumulator))
-                physic.slipAccumulator = 0.0f;
+                physic.slipAccumulator = glm::mix(physic.slipAccumulator, 0.0f, dt * 8.0f);
             else
                 physic.slipAccumulator += dt * 3.0f;
         }
@@ -106,11 +109,11 @@ void CarPhysicsSystem::Update(ecsType& registry, float dt)
 
         if (control.handBraking)
         {
-            physic.slipAccumulator += dt * 5.0f;
+            physic.slipAccumulator = glm::max(physic.slipAccumulator, 1.5f);
         }
 
         //Friction
-        bool isReversing = vLocal.z < -0.5f && physic.throttle < 0.0f;
+        bool isReversing = physic.throttle < -0.01f;
 
         float slipExponent = 1.0f - glm::exp(-physic.slipAccumulator * 8.f);
         float frictionX = glm::mix(12.0f, 0.5f, slipExponent);
@@ -182,11 +185,14 @@ void CarPhysicsSystem::Update(ecsType& registry, float dt)
         float currentYaw = transform.GetRotation().y;
 
         float targetAngle = std::atan2(physic.velocity.x, physic.velocity.z);
-        float delta = std::atan2(std::sin(targetAngle - currentYaw), std::cos(targetAngle - currentYaw));
+        float delta = 0.0f;
+
+        if(speed > 2.0f)
+            delta = std::atan2(std::sin(targetAngle - currentYaw), std::cos(targetAngle - currentYaw));
 
         float alignFactor = 1.0f;
 
-        if (!isReversing)
+        if (!isReversing && speed > 2.0f)
             alignFactor = 1.0f - glm::clamp(glm::abs(delta) * 0.015f, 0.0f, 1.0f);
 
         float speedSteerFactor = glm::smoothstep(0.0f, 5.0f, speed);
@@ -198,7 +204,7 @@ void CarPhysicsSystem::Update(ecsType& registry, float dt)
 
         float roll =  yaw * 10.0f;
 
-        if (speed > 2.0f)
+        if (speed > 2.0f && !isReversing && vLocal.z > 0.5f)
         {
             float lateralSlip = vLocal.x;
             float angle = 9.0f;
@@ -216,7 +222,7 @@ void CarPhysicsSystem::Update(ecsType& registry, float dt)
             currentYaw -= glm::sign(delta) * oversteerAmount * overSteerStrength * dt;
         }
 
-        if (speed > 3.0f && !isReversing)
+        if (speed > 3.0f && !isReversing && vLocal.z  > 0.5f)
         {
             float counterSteerStrength = 1.15f;
 
@@ -239,6 +245,9 @@ void CarPhysicsSystem::Update(ecsType& registry, float dt)
 
             currentYaw += autoCorrect;
         }
+
+        if (speed < 1.5f && glm::abs(physic.throttle) < 0.01f)
+            physic.velocity = glm::vec3(0.0f);
 
         float newSpeed = glm::length(physic.velocity);
         control.liveAccel = newSpeed - control.speed;
