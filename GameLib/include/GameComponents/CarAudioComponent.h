@@ -22,7 +22,7 @@ struct CarAudioComponent
     std::unique_ptr<SoLoud::Wav> engineWav;
     std::unique_ptr<SoLoud::Wav> driftWav;
     std::unique_ptr<SoLoud::Wav> turboWav;
-    std::unique_ptr<SoLoud::Wav> backfireWav;
+    std::vector<std::unique_ptr<SoLoud::Wav>> backfireWavs;
     std::unique_ptr<SoLoud::Wav> brakingWav;
     std::unique_ptr<SoLoud::Wav> RadioWav;
 
@@ -31,15 +31,16 @@ struct CarAudioComponent
     KGR::Audio::WavComponent engineSound;
     KGR::Audio::WavComponent driftSound;
     KGR::Audio::WavComponent turboSound;
-    KGR::Audio::WavComponent backfireSound;
+    std::vector<KGR::Audio::WavComponent> backfireSounds;
     KGR::Audio::WavComponent brakingSound;
     KGR::Audio::WavComponent RadioSound;
 
     //Engine
     float currentRPM = 800.0f;
     float targetRPM = 800.0f;
+    float targetSpeedRatio = 0.0f;
     float minRPM = 800.0f;
-    float maxRPM = 7000.0f;
+    float maxRPM = 8000.0f;
     float rpmSmoothSpeed = 5.0f;
     float lastPitch = 1.0f;
 
@@ -49,4 +50,7 @@ struct CarAudioComponent
     float radioVolumeMin = 0.0f;
     float radioVolumeMax = 1.0f;
     float radioVolumeStep = 0.5f;
+
+    float backFireTimer = 0.0f;
+    int pendinBackFireIndex = 0;
 };

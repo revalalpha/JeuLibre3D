@@ -50,7 +50,7 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 		mat.baseColor = &TextureLoader::Load("Textures/Car/Car_Base_Color.png", window.App());
 		//mat.emissive = &TextureLoader::Load("Textures/bloc_BaseColor_Emissive.png", window.App());
 		//mat.normalMap = &TextureLoader::Load("Textures/bloc_Normal.png", window.App());
-		//mat.pbrMap = &TextureLoader::Load("Textures/bloc_ORM.png", window.App());
+		mat.pbrMap = &TextureLoader::Load("Textures/Car/RGBMaterial.001.png", window.App());
 		text.materials[i] = mat;
 	}
 	
@@ -117,7 +117,7 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 	//Create the four wheels with appropriate offsets and properties
 	auto frontLeft = createWheel("Models/Car/Left_FrontWheel.obj", { 0.4f, 0.0f, .65f }, false, true);
 	auto frontRight = createWheel("Models/Car/Right_FrontWheel.obj", { -0.4f, 0.0f, 0.65f }, false, true);
-	auto backWheels = createWheel("Models/Car/BackWheels.obj", { -0.029f, 0.0f, -.59f }, true, false);
+	auto backWheels = createWheel("Models/Car/BackWheels.obj", { -0.0f, 0.0f, -.59f }, true, false);
 
 	//Link wheels to the car physics component
 	auto& phys = registry.GetComponent<CarPhysicsComponent>(player);

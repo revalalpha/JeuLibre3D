@@ -84,7 +84,7 @@ glm::mat4 TransformComponent::GetRotationMatrix()
 	if (!m_rotation.isDirty)
 		return m_rotationMat;
 
-	m_rotationMat = glm::toMat4(glm::normalize(m_rotation.data));
+	m_rotationMat = glm::mat4_cast(m_rotation.data);
 	m_rotation.isDirty = false;
 
 	return m_rotationMat;
