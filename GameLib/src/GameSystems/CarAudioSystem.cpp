@@ -147,7 +147,7 @@ void CarAudioSystem::Update(ecsType& registry, float deltaTime, KGR::RenderWindo
                 audio.RadioSound.SetVolume(audio.radioVolume);
             }
 
-            if (input->IsKeyDown(KGR::Key::P))
+            if (input->IsKeyDown(KGR::Key::I))
             {
                 audio.radioVolume = glm::clamp(
                     audio.radioVolume - audio.radioVolumeStep * deltaTime,
