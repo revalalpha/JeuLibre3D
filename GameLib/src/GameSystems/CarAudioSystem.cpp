@@ -55,13 +55,13 @@ void CarAudioSystem::Update(ecsType& registry, float deltaTime, KGR::RenderWindo
             float vol = computeLayerVolume(layer, audio.currentRPM);
             float pitch = audio.currentRPM / layer.rpmMax;
 
-            layer.smoothPitch = glm::mix(layer.smoothPitch, pitch, 0.1f);
+            layer.smoothPitch = glm::mix(layer.smoothPitch, pitch, 0.05f);
 
             layer.sound.SetVolume(vol);
 
             if(glm::abs(pitch - audio.lastPitch) > kPitchThreshold)
             {
-                layer.sound.SetPitch(glm::clamp(layer.smoothPitch, 0.1f, 6.0f)); 
+                layer.sound.SetPitch(glm::clamp(layer.smoothPitch, 0.1f, 2.0f)); 
                 audio.lastPitch = pitch;
             }   
         }
@@ -72,7 +72,7 @@ void CarAudioSystem::Update(ecsType& registry, float deltaTime, KGR::RenderWindo
         float lateralSlip = glm::abs(vLocal.x);
 
         float driftThreshold = 2.0f;
-        float driftVolume = glm::clamp((lateralSlip - driftThreshold) / 8.0f, 0.0f, 0.5f);
+        float driftVolume = glm::clamp((lateralSlip - driftThreshold) / 8.0f, 0.0f, 2.0f);
         float driftPitch = glm::mix(0.8f, 1.4f, driftVolume);
 
         if (driftVolume > 0.01f)
@@ -114,7 +114,7 @@ void CarAudioSystem::Update(ecsType& registry, float deltaTime, KGR::RenderWindo
 
             if (audio.backFireTimer <= 0.0f && !anyBackFiringPlaying)
             {
-                audio.backfireSounds[audio.pendinBackFireIndex].SetVolume(0.7f);
+                audio.backfireSounds[audio.pendinBackFireIndex].SetVolume(0.1f);
                 audio.backfireSounds[audio.pendinBackFireIndex].Play();
                 audio.backFireTimer = 0.0f;
             }

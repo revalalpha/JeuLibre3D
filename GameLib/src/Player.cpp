@@ -106,9 +106,6 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 	//Car Camera component
 	CarCameraComponent follow;
 	follow.target = player;
-	follow.distance = 2.5f;
-	follow.baseDistance = 2.5f;
-	follow.height = 1.2f;
 	follow.smooth = 8.0f;
 	follow.lookSmooth = 12.0f;
 

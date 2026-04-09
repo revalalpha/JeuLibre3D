@@ -9,6 +9,7 @@ struct RPMLayer
     float rpmMax;       // RPM où ce layer est au volume max
     float rpmFade;      // RPM où ce layer disparaît complètement
     float smoothPitch = 1.0f;
+    float lastPitch = 1.0f;
 };
 
 
@@ -44,8 +45,8 @@ struct CarAudioComponent
     float lastPitch = 1.0f;
 
     // Radio state
-    bool  radioActive = false;
-    float radioVolume = 0.5f;
+    bool  radioActive = true;
+    float radioVolume = 0.1f;
     float radioVolumeMin = 0.0f;
     float radioVolumeMax = 1.0f;
     float radioVolumeStep = 0.5f;

@@ -62,11 +62,10 @@ void GameAudio::Create(ecsType& registry)
 	audio.brakingSound.SetLoop(true);
 	audio.RadioSound.SetLoop(true);
 
-
-	float randTimer = static_cast<float>(std::rand() % (30*60));
+	float randTimer = static_cast<float>(std::rand() % (15 * 60));
 	audio.RadioSound.PlayAt(randTimer);
-	audio.RadioSound.SetVolume(0.0f);
-
+	audio.RadioSound.SetVolume(0.1f);
+	
 	registry.AddComponents<CarAudioComponent>(playerEntity, std::move(audio));
 }
 
