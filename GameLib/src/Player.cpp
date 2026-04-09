@@ -58,8 +58,8 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 	CollisionComp collider;
 	collider.collider = new Collider();
 
-	collider.collider->localBox.m_min = glm::vec3(-0.905f, -0.505f, -2.215f);
-	collider.collider->localBox.m_max = glm::vec3(0.905f, 0.505f, 2.215f);
+	collider.collider->localBox.m_min = glm::vec3(-0.905f / 2, -0.505f / 2, -2.215f / 2);
+	collider.collider->localBox.m_max = glm::vec3( 0.905f / 2,  0.505f / 2, 2.215f / 2);
 
 
 	CarPhysicsComponent carPhysic;

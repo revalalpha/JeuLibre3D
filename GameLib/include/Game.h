@@ -7,13 +7,6 @@
 #include "ECS/Registry.h"
 #include "Tools/Chrono.h"
 
-enum class GameState
-{
-	Playing,
-	Paused,
-	Menu
-};
-
 // to move 
 struct ControllerComponent {};
 
@@ -25,11 +18,6 @@ struct Game
 	void UpdateGame(float dt);
 	void Run(const KGR::Tools::Chrono<float>::Time& fixedTime);
 	void Render();
-
-	void CreateMenu();
-	void RenderMainMenu();
-
-	GameState state = GameState::Menu;
 
 private:
 	std::unique_ptr<KGR::RenderWindow> window;

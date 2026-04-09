@@ -1,6 +1,4 @@
-<<<<<<< HEAD
 #include "Game.h"
-=======
 #include <iostream>
 
 #include "IGameScene.h"
@@ -23,9 +21,6 @@
 #include "Core/SceneManager.h"
 #include "Core/Scene.h"
 #include "IGameScene.h"
-
-
->>>>>>> origin/mergeToNewEngine
 
 int main(int argc, char** argv)
 {
