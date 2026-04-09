@@ -58,6 +58,7 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 	CollisionComp collider;
 	collider.collider = new Collider();
 
+	//TODO TOFIX collider is very dirty, might take the vertices model to make the collider
 	collider.collider->localBox.m_min = glm::vec3(-0.905f, -0.505f, -2.215f);
 	collider.collider->localBox.m_max = glm::vec3(0.905f, 0.505f, 2.215f);
 
