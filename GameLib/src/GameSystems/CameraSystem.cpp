@@ -94,9 +94,21 @@ void CameraSystem::Update(ecsType& registry, float deltaTime)
 		camTransform.SetPosition(newPos);
 
 		//Calculate look direction and target rotation
-		glm::vec3 rawLookDir = glm::normalize(carPos - newPos);
+		float lookAhead = 1.0f;
+
+		if (registry.HasComponent<CarControllerComponent>(follow.target))
+		{
+			auto& car = registry.GetComponent<CarControllerComponent>(follow.target);
+			float speedRatio = glm::clamp(car.speed / 25.0f, 0.0f, 1.0f);
+			float smoothSpeedRatio = glm::smoothstep(0.0f, 1.0f, speedRatio);
+			lookAhead = glm::mix(lookAhead, 15.0f, smoothSpeedRatio);
+		}
+
+		glm::vec3 lookTarget = carPos + forward * lookAhead;
+		glm::vec3 rawLookDir = glm::normalize(lookTarget - newPos);
+
 		rawLookDir.x *= 0.98f;
-		rawLookDir.y *= 0.78f;
+		rawLookDir.y *= 0.99f;
 		follow.smoothedLookDir = glm::mix(follow.smoothedLookDir, rawLookDir, deltaTime * follow.lookSmooth);
 		follow.smoothedLookDir = glm::normalize(follow.smoothedLookDir);
 

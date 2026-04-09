@@ -45,7 +45,7 @@ void CarPhysicsSystem::Update(ecsType& registry, float dt)
 
 		//Engine braking
         if (physic.throttle <  -0.01f)
-        {
+        {   
             float speed = glm::length(physic.velocity);
             float minBrake = 2.0f;
             float maxBrake = 18.0f;
@@ -63,7 +63,8 @@ void CarPhysicsSystem::Update(ecsType& registry, float dt)
         if (physic.throttle >= -0.01f && physic.throttle <= 0.01f)
         {
             float coastBrake = 1.5f;
-            totalForce -= forward * (coastBrake * glm::sign(vLocal.z));
+            if(glm::abs(vLocal.z) > 0.5f)
+                totalForce -= forward * (coastBrake * glm::sign(vLocal.z));
         }
 
         if (control.handBraking)
@@ -109,10 +110,14 @@ void CarPhysicsSystem::Update(ecsType& registry, float dt)
         }
 
         //Friction
+        bool isReversing = vLocal.z < -0.5f && physic.throttle < 0.0f;
+
         float slipExponent = 1.0f - glm::exp(-physic.slipAccumulator * 8.f);
         float frictionX = glm::mix(12.0f, 0.5f, slipExponent);
         if (control.handBraking)
             frictionX *= 0.15f;
+        if (isReversing)
+            frictionX *= 0.4f;
 
         float frictionZ = 18.0f;
 
@@ -179,10 +184,15 @@ void CarPhysicsSystem::Update(ecsType& registry, float dt)
         float targetAngle = std::atan2(physic.velocity.x, physic.velocity.z);
         float delta = std::atan2(std::sin(targetAngle - currentYaw), std::cos(targetAngle - currentYaw));
 
-        float alignFactor  = 1.0f - glm::clamp(glm::abs(delta) * 0.03f, 0.0f, 1.0f);
+        float alignFactor = 1.0f;
+
+        if(!isReversing)
+            alignFactor  = 1.0f - glm::clamp(glm::abs(delta) * 0.03f, 0.0f, 1.0f);
+
         float speedSteerFactor = glm::smoothstep(0.0f, 5.0f, speed);
 
-        float yaw = physic.smoothSteering * steerAngleMax * 0.62f * alignFactor * speedSteerFactor;
+        float reverseSign = (isReversing) ? -1.0f : 1.0f;
+        float yaw = physic.smoothSteering * steerAngleMax * 0.62f * alignFactor * speedSteerFactor * reverseSign;
         
         currentYaw += yaw;
 

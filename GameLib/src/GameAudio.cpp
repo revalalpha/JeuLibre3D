@@ -49,7 +49,10 @@ void GameAudio::Create(ecsType& registry)
 	audio.RadioSound.SetWav(*audio.RadioWav);
 
 	audio.RadioSound.SetLoop(true);
-
+	float randTimer = static_cast<float>(std::rand() % (15 * 60));
+	audio.RadioSound.PlayAt(randTimer);
+	audio.RadioSound.SetVolume(0.1f);
+	
 	registry.AddComponents<CarAudioComponent>(playerEntity, std::move(audio));
 }
 

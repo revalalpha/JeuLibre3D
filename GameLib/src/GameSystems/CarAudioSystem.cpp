@@ -51,10 +51,17 @@ void CarAudioSystem::Update(ecsType& registry, float deltaTime, KGR::RenderWindo
         for (auto& layer : audio.engineLayers)
         {
             float vol = computeLayerVolume(layer, audio.currentRPM);
+            float pitch = audio.currentRPM / layer.rpmMax;
+
+            layer.smoothPitch = glm::mix(layer.smoothPitch, pitch, 0.05f);
+
             layer.sound.SetVolume(vol);
 
-            if (pitchChanged)
-                layer.sound.SetPitch(globalPitch);
+            if(glm::abs(pitch - audio.lastPitch) > kPitchThreshold)
+            {
+                layer.sound.SetPitch(glm::clamp(layer.smoothPitch, 0.1f, 2.0f)); 
+                audio.lastPitch = pitch;
+            }   
         }
 
         if (pitchChanged)
@@ -66,7 +73,7 @@ void CarAudioSystem::Update(ecsType& registry, float deltaTime, KGR::RenderWindo
         float lateralSlip = glm::abs(vLocal.x);
 
         float driftThreshold = 2.0f;
-        float driftVolume = glm::clamp((lateralSlip - driftThreshold) / 8.0f, 0.0f, 1.0f);
+        float driftVolume = glm::clamp((lateralSlip - driftThreshold) / 8.0f, 0.0f, 4.0f);
         float driftPitch = glm::mix(0.8f, 1.4f, driftVolume);
 
         if (driftVolume > 0.01f)
@@ -88,9 +95,29 @@ void CarAudioSystem::Update(ecsType& registry, float deltaTime, KGR::RenderWindo
         // --- Pétarade : décélération brutale depuis haut régime ---
         bool isDecelerating = car.acceleration < 0.01f && car.speed > 20.0f;
         bool isHighRPM = rpmRatio > 0.7f;
+        bool anyBackFiringPlaying = std::any_of(
+            audio.backfireSounds.begin(), audio.backfireSounds.end(),
+            [](const KGR::Audio::WavComponent& s) {return s.IsPlaying();}
+        );
 
-        if (isDecelerating && isHighRPM && !audio.backfireSound.IsPlaying())
-            audio.backfireSound.Play();
+        if (isDecelerating && !wasDecelerating && isHighRPM &&!anyBackFiringPlaying)
+        {
+            audio.backFireTimer = glm::mix(0.1f, 0.4f, static_cast<float>(std::rand()) / RAND_MAX);
+            audio.pendinBackFireIndex = std::rand() % audio.backfireSounds.size();
+        }
+        wasDecelerating = isDecelerating;
+
+        if (audio.backFireTimer > 0.0f)
+        {
+            audio.backFireTimer -= deltaTime;
+
+            if (audio.backFireTimer <= 0.0f && !anyBackFiringPlaying)
+            {
+                audio.backfireSounds[audio.pendinBackFireIndex].SetVolume(0.1f);
+                audio.backfireSounds[audio.pendinBackFireIndex].Play();
+                audio.backFireTimer = 0.0f;
+            }
+        }
 
         // --- Freinage one-shot ---
         static bool wasBraking = false;
