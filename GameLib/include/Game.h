@@ -1,4 +1,3 @@
-//Code Your Game Here
 #pragma once
 #include <string>
 #include <vector>
@@ -17,6 +16,7 @@ enum class GameState
 
 // to move 
 struct ControllerComponent {};
+
 using ecsType = KGR::ECS::Registry<KGR::ECS::Entity::_64, 100>;
 
 struct Game
@@ -30,6 +30,7 @@ struct Game
 	void RenderMainMenu();
 
 	GameState state = GameState::Menu;
+
 private:
 	std::unique_ptr<KGR::RenderWindow> window;
 	ecsType registry = ecsType{};

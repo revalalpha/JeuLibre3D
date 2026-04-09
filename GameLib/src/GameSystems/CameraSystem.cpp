@@ -9,6 +9,7 @@
 #include <glm/gtx/quaternion.hpp>
 
 glm::vec3 targetPos;
+float targetHeight;
 
 void CameraSystem::Update(ecsType& registry, float deltaTime)
 {
@@ -44,6 +45,9 @@ void CameraSystem::Update(ecsType& registry, float deltaTime)
 			targetDistance = follow.baseDistance - speed * follow.speedDistanceInfluence;
 			targetDistance = glm::clamp(targetDistance, follow.minDistance, follow.baseDistance);
 
+			targetHeight = follow.baseHeight - speed * follow.speedHeightInfluence;
+			targetHeight = glm::clamp(targetHeight, follow.height, follow.baseHeight);
+
 			//follow.distance = glm::mix(follow.distance, targetDistance, deltaTime * follow.smooth);
 
 			//Fov
@@ -76,7 +80,7 @@ void CameraSystem::Update(ecsType& registry, float deltaTime)
             targetPos += right * drift.driftFactor * follow.driftInfluence;
         }
 
-		glm::vec3 targetPos = carPos - forward * targetDistance + glm::vec3(0, follow.height, 0);
+		glm::vec3 targetPos = carPos - forward * targetDistance + glm::vec3(0, targetHeight, 0);
 
 		//Smoothly change fov
 		float currentFov = follow.fov;

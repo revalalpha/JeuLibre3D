@@ -18,9 +18,12 @@ struct CarCameraComponent
 	float fov = 45.0f;
 	float baseFov = 45.0f;
 	float pivotOffset = 2.0f;
-	float speedDistanceInfluence = 0.05f;
+	float speedDistanceInfluence = 0.02f;
+	float speedHeightInfluence = 0.02f;
+	float baseHeight = 1.3f;
+	float minHeight = 1.3f;
 
-	float speedInfluence = 0.02f;   ///< dynamic FOV influence based on car speed (0 = no influence, higher = more FOV increase at high speeds)
+	float speedInfluence = 0.04f;   ///< dynamic FOV influence based on car speed (0 = no influence, higher = more FOV increase at high speeds)
 	float steerInfluence = 0.5f;    ///< influence of steering angle on camera position (0 = no influence, 1 = full influence)
 	float smoothedSteer = 0.0f;     ///< smoothed steering angle for camera adjustments
 	float steerSmooth = 15.0f;      ///< smoothing factor for steering influence on camera

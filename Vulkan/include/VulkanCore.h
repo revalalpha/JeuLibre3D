@@ -31,6 +31,8 @@
 #include "Core/TrasformComponent.h"
 #include "Core/Vertex.h"
 #include "../../Editor/include/Offscreen.h"
+#include "Core/Materials.h"
+#include "Core/TextComponent.h"
 
 struct Texture;
 struct CameraComponent;
@@ -45,7 +47,7 @@ struct MeshData
 	/**
 	 * @brief Model transformation matrix.
 	 */
-	glm::mat4 matrixModel;
+	std::vector<glm::mat4> matrixModels;
 
 	/**
 	 * @brief Pointer to mesh object.
@@ -55,8 +57,27 @@ struct MeshData
 	/**
 	 * @brief Pointer to vector of textures.
 	 */
-	std::vector<Texture*>* texture;
+	std::vector<Material> texture;
 };
+
+static bool IsSameMat(const std::vector<Material>& lhs, const std::vector<Material>& rhs)
+{
+	if (lhs.size() != rhs.size())
+		return false;
+	for (int i = 0; i< lhs.size() ; ++i)
+	{
+		if (lhs[i] != rhs[i])
+			return false;
+	}
+	return true;
+}
+
+static bool IsSameMesh(Mesh* lhsMesh, const std::vector<Material>& lhsMats,Mesh* rhsMesh, const std::vector<Material>& rhsMats)
+{
+	if (lhsMesh != rhsMesh)
+		return false;
+	return IsSameMat(lhsMats, rhsMats);
+}
 
 /**
  * @brief Struct representing a line segment for debug rendering.
@@ -68,6 +89,22 @@ struct Segment
 	float  thickness; ///< Line thickness
 	glm::vec4 color;  ///< Line color
 };
+
+
+struct TextData
+{
+	Text* text;
+	Texture* texture;
+	UiData::UiValidData data;
+};
+
+struct UiDataGPU
+{
+	Texture* texture;
+	UiData::UiValidData data;
+	Texture* whiteTexture;
+ };
+
 
 namespace KGR
 {
@@ -87,8 +124,8 @@ namespace KGR
 			 * @brief Initializes Vulkan and creates all required resources.
 			 * @param window Pointer to GLFW window.
 			 */
-			void initVulkan(GLFWwindow* window);
-
+			void  initVulkan(GLFWwindow* window);
+			
 			/**
 			 * @brief Debug callback function for Vulkan validation layers.
 			 */
@@ -108,6 +145,9 @@ namespace KGR
 			 * @return Vulkan Image object.
 			 */
 			Image CreateImage(const std::string& filePath);
+
+			Image CreateImageFromData(const unsigned char* pixels, int width, int height);
+
 
 			/**
 			 * @brief Creates a descriptor set for a given image.
@@ -185,8 +225,9 @@ namespace KGR
 			 * @param model Model transformation
 			 * @param texture Vector of textures for the mesh
 			 */
-			void RegisterRender(Mesh& mesh, const glm::mat4& model, std::vector<Texture*>& texture);
-			void RegisterUi(const UiData& data, Texture* texture,const glm::vec2& screenSize);
+			void RegisterRender(Mesh& mesh, const glm::mat4& model,const  std::vector<Material>& texture);
+			void RegisterUi(const UiData& data, Texture* texture,const glm::vec2& screenSize, Texture* whiteTexture);
+			void RegisterText(Text* text,Texture* texture,const UiData& data, const glm::vec2& screenSize);
 			/**
 			 * @brief Performs rendering of registered meshes, lights, and optionally ImGui data.
 			 * @param window GLFW window pointer
@@ -194,7 +235,7 @@ namespace KGR
 			 * @param imguiDraw Optional ImGui draw data
 			 */
 			void Render(GLFWwindow* window, const glm::vec4& clearColor = { 0,0,0,1 }, ImDrawData* imguiDraw = nullptr, KGR::Editor::Offscreen* offscreen = nullptr);
-
+			void Destroy();
 		private:
 
 			int BeginRendering(GLFWwindow* window, vk::raii::CommandBuffer* currentBuffer, Pipeline* pipeline, const glm::vec4& color = { 0,0,0,1 });
@@ -217,8 +258,8 @@ namespace KGR
 				vk::ImageAspectFlags image_aspect_flags,
 				vk::raii::CommandBuffer& buffer);
 
-			void transitionImageLayout(const vk::raii::Image& image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, uint32_t mipLevels);
-			void generateMipmaps(vk::raii::Image& image, vk::Format imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
+			void transitionImageLayout(vk::raii::CommandBuffer* commandBuffer,const vk::raii::Image& image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, uint32_t mipLevels);
+			void generateMipmaps(vk::raii::CommandBuffer* commandBuffer,vk::raii::Image& image, vk::Format imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
 
 			// Vulkan core resources
 			Instance               instance;
@@ -248,25 +289,31 @@ namespace KGR
 			std::vector<const char*> requiredDeviceExtension = { vk::KHRSwapchainExtensionName };
 
 			// Temporary buffers
-			Buffer stagingVertexBuffer;
+			
 			Buffer vertexBuffer;
-			Buffer stagingIndexBuffer;
 			Buffer indexBuffer;
 
-			Buffer uniformBuffers;
+			
 			std::vector<LightData> m_lights;
 			DescriptorSet m_LightSet;
 			Buffer m_lightBuffer;
-			Buffer m_lightCount;
-			std::optional<UniformBufferObject> m_ubo;
+			Buffer m_transformBuffer;
+			DescriptorSet m_transformSet;
+			
 			std::vector<MeshData> m_toRenderObject;
-			std::vector<std::pair<Texture*, UiData::UiValidData>> uIRender;
-
+			std::vector<UiDataGPU> uIRender;
+			std::vector<TextData> m_textData;
 
 
 			Buffer uiVertexBuffer;
 			Buffer uiIndexBuffer;
 
+	
+			Buffer m_lightCount;
+
+
+			std::optional<UniformBufferObject> m_ubo;
+			Buffer uniformBuffers;
 		};
 
 		template <typename VertexT>

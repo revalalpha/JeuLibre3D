@@ -62,10 +62,7 @@ void Game::Init(const std::string& fp)
 	player.CreatePlayer(registry, *window);
 
 	//Audio
-	//gameAudio.Create(registry);
-
-	state = GameState::Menu;
-	CreateMenu();
+	gameAudio.Create(registry);
 
 	//Track
 	Track track;
@@ -88,64 +85,6 @@ void Game::Init(const std::string& fp)
 	}
 }
 
-void Game::CreateMenu()
-{
-	menuBG = registry.CreateEntity();
-
-	// UI
-	registry.AddComponent<UiComponent>(menuBG);
-	auto& ui = registry.GetComponent<UiComponent>(menuBG);
-	ui.SetVr({ 1920,1080 });
-	ui.SetPos({ 960,540 });
-	ui.SetScale({ 1920,1080 });
-	ui.SetAnchor(UiComponent::Anchor::Center);
-
-	// Transform
-	registry.AddComponent<TransformComponent2d>(menuBG);
-	auto& tr = registry.GetComponent<TransformComponent2d>(menuBG);
-	tr.SetPosition({ 0,0 });
-	tr.SetScale({ 1,1 });
-
-	// Texture
-	registry.AddComponent<TextureComponent>(menuBG);
-	auto& tex = registry.GetComponent<TextureComponent>(menuBG);
-	tex.SetSize(1);
-	tex.AddTexture(0, LoadTexture("Textures/Menu.png", window->App()).release());
-}
-
-void Game::RenderMainMenu()
-{
-	if (window->GetInputManager()->IsKeyPressed(KGR::SpecialKey::Enter))
-	{
-		//Safe delete before destroying
-		if (registry.HasComponent<TextureComponent>(menuBG))
-		{
-			auto& tex = registry.GetComponent<TextureComponent>(menuBG);
-			for (auto& t : tex.GetAllTextures())
-				delete t;
-		}
-		registry.DestroyEntity(menuCam);
-		registry.DestroyEntity(menuBG);
-
-		window->GetInputManager()->SetMode(GLFW_CURSOR_DISABLED);
-
-		state = GameState::Playing;
-		return;
-	}
-
-	auto& cam = registry.GetComponent<CameraComponent>(menuCam);
-	auto& tr3 = registry.GetComponent<TransformComponent>(menuCam);
-	window->RegisterCam(cam, tr3);
-
-	auto& ui = registry.GetComponent<UiComponent>(menuBG);
-	auto& tr = registry.GetComponent<TransformComponent2d>(menuBG);
-	auto& tex = registry.GetComponent<TextureComponent>(menuBG);
-
-	window->RegisterUi(ui, tr, tex);
-	window->Render({ 0,0,0,1 });
-}
-
-
 void Game::UpdateGame(float dt)
 {
 	//Camera control
@@ -161,7 +100,7 @@ void Game::UpdateGame(float dt)
 	player.Update(registry, dt);
 
 	//Game Audio
-	//gameAudio.Update(registry, dt);
+	gameAudio.Update(registry, dt, *window);
 
 	//Car physics
 	CarPhysicsSystem carPhysic;
@@ -216,16 +155,6 @@ void Game::Run(const KGR::Tools::Chrono<float>::Time& fixedTime)
 		lag += elapsed;
 		//set scene
 		//Input 
-
-		if (state == GameState::Menu)
-		{
-			KGR::RenderWindow::PollEvent();
-			window->Update();
-			RenderMainMenu();
-			continue;
-		}
-
-		
 
 		// need improvement if update is too heavy and create lag maybe separate physics and update for animation 
 		while (lag >= fixTick)

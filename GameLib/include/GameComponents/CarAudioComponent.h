@@ -1,36 +1,50 @@
 #include "Audio\SoundComponent.h"
 
-enum struct CarState
+struct RPMLayer
 {
-    Idle,
-    Accelerating,
-    MaxAccelerating,
-    Decelerating,
-    Drifting,
-    Braking
+    std::shared_ptr<SoLoud::Wav> wav;
+    KGR::Audio::WavComponent sound;
+
+    float rpmMin;       // RPM où ce layer commence à entrer
+    float rpmMax;       // RPM où ce layer est au volume max
+    float rpmFade;      // RPM où ce layer disparaît complètement
 };
+
 
 struct CarAudioComponent
 {
-    CarState state = CarState::Idle;
+    //Layers Moteur
+    std::vector<RPMLayer> engineLayers;
 
-    std::unique_ptr<SoLoud::Wav> idleWav;
-    std::unique_ptr<SoLoud::Wav> accelWav;
-    std::unique_ptr<SoLoud::Wav> maxAccelWav;
-    std::unique_ptr<SoLoud::Wav> driftingWav;
-    std::unique_ptr<SoLoud::Wav> decelWav;
-
-    std::unique_ptr<SoLoud::Wav> brakingWav;
-
+    /// Wav
+    std::unique_ptr<SoLoud::Wav> engineWav;
+    std::unique_ptr<SoLoud::Wav> driftWav;
     std::unique_ptr<SoLoud::Wav> turboWav;
+    std::unique_ptr<SoLoud::Wav> backfireWav;
+    std::unique_ptr<SoLoud::Wav> brakingWav;
+    std::unique_ptr<SoLoud::Wav> RadioWav;
 
-    KGR::Audio::WavComponent idleSound;
-    KGR::Audio::WavComponent accelSound;
-    KGR::Audio::WavComponent maxAccelSound;
-    KGR::Audio::WavComponent driftingSound;
-    KGR::Audio::WavComponent decelSound;
 
-    KGR::Audio::WavComponent brakingSound;
-
+    /// Sound
+    KGR::Audio::WavComponent engineSound;
+    KGR::Audio::WavComponent driftSound;
     KGR::Audio::WavComponent turboSound;
+    KGR::Audio::WavComponent backfireSound;
+    KGR::Audio::WavComponent brakingSound;
+    KGR::Audio::WavComponent RadioSound;
+
+    //Engine
+    float currentRPM = 800.0f;
+    float targetRPM = 800.0f;
+    float minRPM = 800.0f;
+    float maxRPM = 7000.0f;
+    float rpmSmoothSpeed = 5.0f;
+    float lastPitch = 1.0f;
+
+    // Radio state
+    bool  radioActive = false;
+    float radioVolume = 0.5f;
+    float radioVolumeMin = 0.0f;
+    float radioVolumeMax = 1.0f;
+    float radioVolumeStep = 0.5f;
 };

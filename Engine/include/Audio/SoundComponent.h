@@ -51,6 +51,10 @@ namespace KGR
              */
             void SetLoop(bool isLooping);
 
+            void SetPitch(float pitch);
+
+            void PlayLooped(float initialVolume);
+
             /**
              * @brief Checks whether the sound has finished playing.
              * @return True if playback is finished, false otherwise.
@@ -112,8 +116,8 @@ namespace KGR
              * @brief Initializes the global SoLoud engine for WAV playback.
              * @param path Path to the audio configuration or assets directory.
              */
-            static void Init(const std::filesystem::path&);
-
+            static void Init();
+            //t
         private:
             /**
              * @brief Throws an exception if the WAV resource is invalid.
@@ -236,7 +240,7 @@ namespace KGR
              * @brief Initializes the global SoLoud engine for WAV streaming.
              * @param globFilePath Path to the audio configuration or assets directory.
              */
-            static void Init(const std::filesystem::path& globFilePath);
+            static void Init();
 
         private:
             /**

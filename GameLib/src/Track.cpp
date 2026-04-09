@@ -24,13 +24,30 @@ void Track::SpawnRoadPieces(ecsType& registry, KGR::RenderWindow& window, const 
         // RMF orientation
         transform.SetOrientation(glm::quatLookAt(track.frames[i].forward, track.frames[i].up));
 
-        TextureComponent texture;
-        texture.SetSize(mesh.mesh->GetSubMeshesCount());
-        for (int j = 0; j < mesh.mesh->GetSubMeshesCount(); ++j)
-            texture.AddTexture(j, &TextureLoader::Load("Textures\\BaseTexture.png", window.App()));
+        //TextureComponent texture;
+        //texture.SetSize(mesh.mesh->GetSubMeshesCount());
+        //for (int j = 0; j < mesh.mesh->GetSubMeshesCount(); ++j)
+        //    texture.AddTexture(j, &TextureLoader::Load("Textures\\BaseTexture.png", window.App()));
 
-        registry.AddComponents<MeshComponent, TransformComponent, TextureComponent>(
-            e, std::move(mesh), std::move(transform), std::move(texture));
+        // create a texture 
+        MaterialComponent text;
+        // allocate the size of the texture must be the same as the number of submeshes 
+        text.materials.resize(mesh.mesh->GetSubMeshesCount());
+        // then fill the texture ( this system need to be refact but for now you need to do it like that
+        for (int i = 0; i < mesh.mesh->GetSubMeshesCount(); ++i)
+        {
+            Material mat;
+            mat.baseColor = &TextureLoader::Load("Textures\\BaseTexture.png", window.App());
+            //mat.emissive = &TextureLoader::Load("Textures/bloc_BaseColor_Emissive.png", window.App());
+            //mat.normalMap = &TextureLoader::Load("Textures/bloc_Normal.png", window.App());
+            //mat.pbrMap = &TextureLoader::Load("Textures/bloc_ORM.png", window.App());
+            text.materials[i] = mat;
+        }
+
+
+
+        registry.AddComponents<MeshComponent, TransformComponent, MaterialComponent>(
+            e, std::move(mesh), std::move(transform), std::move(text));
 
 		//Walls genration
         glm::vec3 forward = track.frames[i].forward;
@@ -46,10 +63,26 @@ void Track::SpawnRoadPieces(ecsType& registry, KGR::RenderWindow& window, const 
             MeshComponent mesh;
             mesh.mesh = &MeshLoader::Load("Models\\CUBE.obj", window.App());
 
-            TextureComponent texture;
-            texture.SetSize(mesh.mesh->GetSubMeshesCount());
-            for (int j = 0; j < mesh.mesh->GetSubMeshesCount(); ++j)
-                texture.AddTexture(j, &TextureLoader::Load("Textures\\BaseTexture.png", window.App()));
+            //TextureComponent texture;
+            //texture.SetSize(mesh.mesh->GetSubMeshesCount());
+            //for (int j = 0; j < mesh.mesh->GetSubMeshesCount(); ++j)
+            //    texture.AddTexture(j, &TextureLoader::Load("Textures\\BaseTexture.png", window.App()));
+
+
+            // create a texture 
+            MaterialComponent text;
+            // allocate the size of the texture must be the same as the number of submeshes 
+            text.materials.resize(mesh.mesh->GetSubMeshesCount());
+            // then fill the texture ( this system need to be refact but for now you need to do it like that
+            for (int i = 0; i < mesh.mesh->GetSubMeshesCount(); ++i)
+            {
+                Material mat;
+                mat.baseColor = &TextureLoader::Load("Textures\\rouge.jpg", window.App());
+                //mat.emissive = &TextureLoader::Load("Textures/bloc_BaseColor_Emissive.png", window.App());
+                //mat.normalMap = &TextureLoader::Load("Textures/bloc_Normal.png", window.App());
+                //mat.pbrMap = &TextureLoader::Load("Textures/bloc_ORM.png", window.App());
+                text.materials[i] = mat;
+            }
 
             CollisionComp collider;
             collider.collider = new Collider();
@@ -63,8 +96,8 @@ void Track::SpawnRoadPieces(ecsType& registry, KGR::RenderWindow& window, const 
             tr.SetOrientation(glm::quatLookAt(forward, up));
 
 
-            registry.AddComponents<MeshComponent, TransformComponent, TextureComponent, CollisionComp>(
-                wall, std::move(mesh), std::move(tr), std::move(texture), std::move(collider));
+            registry.AddComponents<MeshComponent, TransformComponent, MaterialComponent, CollisionComp>(
+                wall, std::move(mesh), std::move(tr), std::move(text), std::move(collider));
         }
 
 		//Right wall
@@ -74,10 +107,26 @@ void Track::SpawnRoadPieces(ecsType& registry, KGR::RenderWindow& window, const 
             MeshComponent mesh;
             mesh.mesh = &MeshLoader::Load("Models\\CUBE.obj", window.App());
 
-            TextureComponent texture;
-            texture.SetSize(mesh.mesh->GetSubMeshesCount());
-            for (int j = 0; j < mesh.mesh->GetSubMeshesCount(); ++j)
-                texture.AddTexture(j, &TextureLoader::Load("Textures\\BaseTexture.png", window.App()));
+            //TextureComponent texture;
+            //texture.SetSize(mesh.mesh->GetSubMeshesCount());
+            //for (int j = 0; j < mesh.mesh->GetSubMeshesCount(); ++j)
+            //    texture.AddTexture(j, &TextureLoader::Load("Textures\\BaseTexture.png", window.App()));
+
+
+            // create a texture 
+            MaterialComponent text;
+            // allocate the size of the texture must be the same as the number of submeshes 
+            text.materials.resize(mesh.mesh->GetSubMeshesCount());
+            // then fill the texture ( this system need to be refact but for now you need to do it like that
+            for (int i = 0; i < mesh.mesh->GetSubMeshesCount(); ++i)
+            {
+                Material mat;
+                mat.baseColor = &TextureLoader::Load("Textures\\rouge.jpg", window.App());
+                //mat.emissive = &TextureLoader::Load("Textures/bloc_BaseColor_Emissive.png", window.App());
+                //mat.normalMap = &TextureLoader::Load("Textures/bloc_Normal.png", window.App());
+                //mat.pbrMap = &TextureLoader::Load("Textures/bloc_ORM.png", window.App());
+                text.materials[i] = mat;
+            }
 
             CollisionComp collider;
             collider.collider = new Collider();
@@ -90,8 +139,8 @@ void Track::SpawnRoadPieces(ecsType& registry, KGR::RenderWindow& window, const 
             tr.SetPosition(track.sampledPoints[i] + right * halfWidth);
             tr.SetOrientation(glm::quatLookAt(forward, up));
 
-            registry.AddComponents<MeshComponent, TransformComponent, TextureComponent, CollisionComp>(
-                wall, std::move(mesh), std::move(tr), std::move(texture), std::move(collider));
+            registry.AddComponents<MeshComponent, TransformComponent, MaterialComponent, CollisionComp>(
+                wall, std::move(mesh), std::move(tr), std::move(text), std::move(collider));
         }
     }
 }

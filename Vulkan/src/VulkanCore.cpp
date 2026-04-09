@@ -60,8 +60,6 @@ void KGR::_Vulkan::VulkanCore::initVulkan(GLFWwindow* window)
 		.fragmentMain = "fragMain"
 	};
 
-	debugRenderer = DebugRenderer(&device, &physicalDevice);
-
 	// Layouts 
 	std::vector<vk::DescriptorSetLayoutBinding> bindings = {
 			vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eVertex, nullptr)
@@ -83,14 +81,40 @@ void KGR::_Vulkan::VulkanCore::initVulkan(GLFWwindow* window)
 	std::vector<vk::DescriptorSetLayoutBinding> bindings3 = {
 					vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eCombinedImageSampler, 1, vk::ShaderStageFlagBits::eFragment, nullptr)
 	};
+	std::vector<vk::DescriptorSetLayoutBinding> bindings4 = {
+				vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eCombinedImageSampler, 1, vk::ShaderStageFlagBits::eFragment, nullptr)
+	};
+	std::vector<vk::DescriptorSetLayoutBinding> bindings5 = {
+				vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eCombinedImageSampler, 1, vk::ShaderStageFlagBits::eFragment, nullptr)
+	};
+	std::vector<vk::DescriptorSetLayoutBinding> bindings6 = {
+				vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eCombinedImageSampler, 1, vk::ShaderStageFlagBits::eFragment, nullptr)
+	};
+	std::vector<vk::DescriptorSetLayoutBinding> bindings7 = {
+				vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eCombinedImageSampler, 1, vk::ShaderStageFlagBits::eFragment, nullptr)
+	};
+	std::vector<vk::DescriptorSetLayoutBinding> bindings8 = {
+				vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eVertex, nullptr)
+	};
 	auto layout3 = DescriptorLayout(bindings3, &device);
 	auto layout4 = DescriptorLayout(bindings3, &device);
+	auto layout5 = DescriptorLayout(bindings4, &device);
+	auto layout6 = DescriptorLayout(bindings5, &device);
+	auto layout7 = DescriptorLayout(bindings6, &device);
+	auto layout8 = DescriptorLayout(bindings7, &device);
+	auto layout9 = DescriptorLayout(bindings8, &device);
 	descriptorSetLayout.Add(std::move(layout3));
+	descriptorSetLayout.Add(std::move(layout5));
+	descriptorSetLayout.Add(std::move(layout6));
+	descriptorSetLayout.Add(std::move(layout7));
+	descriptorSetLayout.Add(std::move(layout9));
+
 	uiLayout.Add(std::move(layout4));
+	uiLayout.Add(std::move(layout8));
 
 	graphicsPipeline = _Vulkan::Pipeline(info, &device, &swapChain,&descriptorSetLayout,&physicalDevice,vk::PolygonMode::eFill,Vertex::getBindingDescription(), Vertex::getAttributeDescriptions());
 	linePipeLine = _Vulkan::Pipeline(info2, &device, &swapChain, &descriptorSetLayout, &physicalDevice, vk::PolygonMode::eFill, SegmentVertex::getBindingDescription(), SegmentVertex::getAttributeDescriptions());
-	uiPipeline = _Vulkan::Pipeline::CreateUiPipeline(info3, &device, &swapChain, &uiLayout, &physicalDevice, Vertex2D::getBindingDescription(), Vertex2D::getAttributeDescriptions());
+	uiPipeline = _Vulkan::Pipeline::CreateUiPipeline(info3, &device, &swapChain, &uiLayout, &physicalDevice, Vertex2D::getBindingDescription(), Vertex2D::getAttributeDescriptions(), sizeof(UiData::UiValidData));
 	// Command Buffer
 	commandBuffers = _Vulkan::CommandBuffers(&device);
 
@@ -113,21 +137,23 @@ void KGR::_Vulkan::VulkanCore::initVulkan(GLFWwindow* window)
 	// UniformBuffer
 
 	vk::DeviceSize bufferSize = sizeof(UniformBufferObject);
-	auto bufferD = Buffer(&device, &physicalDevice, vk::BufferUsageFlagBits::eUniformBuffer, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, bufferSize);
-	bufferD.MapMemory(bufferSize);
+	auto bufferD = Buffer(&device, &physicalDevice, vk::BufferUsageFlagBits::eUniformBuffer | vk::BufferUsageFlagBits::eTransferDst, vk::MemoryPropertyFlagBits::eDeviceLocal, bufferSize);
 	uniformBuffers = std::move(bufferD);
 
 
 	// light Buffer 
-	vk::DeviceSize bufferSize2 = (StorageContainer < LightData, 200 >::Capacity());
-	auto bufferD2 = Buffer(&device, &physicalDevice, vk::BufferUsageFlagBits::eStorageBuffer, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, bufferSize2);
-	bufferD2.MapMemory(bufferSize2);
+	vk::DeviceSize bufferSize2 = (StorageContainer < LightData, 1000 >::Capacity());
+	auto bufferD2 = Buffer(&device, &physicalDevice, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst, vk::MemoryPropertyFlagBits::eDeviceLocal, bufferSize2);
 	m_lightBuffer = std::move(bufferD2);
 
 	vk::DeviceSize bufferSize3 = sizeof(uint32_t);
 	auto bufferD3 = Buffer(&device, &physicalDevice, vk::BufferUsageFlagBits::eUniformBuffer, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, bufferSize3);
 	bufferD3.MapMemory(bufferSize3);
 	m_lightCount = std::move(bufferD3);
+
+	vk::DeviceSize bufferSize4 = (StorageContainer < glm::mat4, 5000 >::Capacity());
+	auto bufferD4 = Buffer(&device, &physicalDevice, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst, vk::MemoryPropertyFlagBits::eDeviceLocal, bufferSize4);
+	m_transformBuffer = std::move(bufferD4);
 
 	// descriptorPool
 	std::vector<vk::DescriptorPoolSize> poolSize{
@@ -140,7 +166,7 @@ void KGR::_Vulkan::VulkanCore::initVulkan(GLFWwindow* window)
 	// DescriptorSet
 	descriptorSets = DescriptorSet(&device, &descriptorPool, &descriptorSetLayout.Get(0));
 	m_LightSet = DescriptorSet(&device, &descriptorPool, &descriptorSetLayout.Get(1));
-
+	m_transformSet = DescriptorSet(&device, &descriptorPool, &descriptorSetLayout.Get(6));
 	vk::DescriptorBufferInfo bufferInfo{
 		.buffer = uniformBuffers.Get(),
 		.offset = 0,
@@ -153,6 +179,10 @@ void KGR::_Vulkan::VulkanCore::initVulkan(GLFWwindow* window)
 		.buffer = m_lightCount.Get(),
 		.offset = 0,
 		.range = m_lightCount.GetSize() };
+	vk::DescriptorBufferInfo bufferInfo4{
+	.buffer = m_transformBuffer.Get(),
+	.offset = 0,
+	.range = m_transformBuffer.GetSize() };
 	std::array descriptorWrites
 	{
 		vk::WriteDescriptorSet{
@@ -169,6 +199,13 @@ void KGR::_Vulkan::VulkanCore::initVulkan(GLFWwindow* window)
 				.descriptorCount = 1,
 				.descriptorType = vk::DescriptorType::eStorageBuffer,
 				.pBufferInfo = &bufferInfo2},
+		vk::WriteDescriptorSet{
+				.dstSet = m_transformSet.Get(),
+				.dstBinding = 0,
+				.dstArrayElement = 0,
+				.descriptorCount = 1,
+				.descriptorType = vk::DescriptorType::eStorageBuffer,
+				.pBufferInfo = &bufferInfo4},
 				vk::WriteDescriptorSet{
 					.dstSet = m_LightSet.Get(),
 					.dstBinding = 1,
@@ -183,22 +220,22 @@ void KGR::_Vulkan::VulkanCore::initVulkan(GLFWwindow* window)
 
 
 		size_t vertSize =4096 * sizeof(SegmentVertex) * 4;
-		stagingVertexBuffer = KGR::_Vulkan::Buffer(&device, &physicalDevice, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, vertSize);
+		auto stagingVertexBuffer = KGR::_Vulkan::Buffer(&device, &physicalDevice, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, vertSize);
 		vertexBuffer = KGR::_Vulkan::Buffer(&device, &physicalDevice, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal, vertSize);
 		vertexBuffer.Copy(&stagingVertexBuffer, &device, &queue, &commandBuffers);
 
 		//tmp
 		size_t indexSize = 4096 * sizeof(std::uint32_t) * 6;
-		stagingIndexBuffer= KGR::_Vulkan::Buffer(&device, &physicalDevice, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, indexSize);
+		auto stagingIndexBuffer= KGR::_Vulkan::Buffer(&device, &physicalDevice, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, indexSize);
 		indexBuffer = KGR::_Vulkan::Buffer(&device, &physicalDevice, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal, indexSize);
 		indexBuffer.Copy(&stagingIndexBuffer, &device, &queue, &commandBuffers);
 
 		std::vector<Vertex2D> vertices =
 		{
-			{{-0.5f, -0.5f}, {0.0f, 0.0f}}, 
-			{{ 0.5f, -0.5f}, {1.0f, 0.0f}}, 
-			{{ 0.5f,  0.5f}, {1.0f, 1.0f}}, 
-			{{-0.5f,  0.5f}, {0.0f, 1.0f}}, 
+			{{-0.5f, -0.5f}, {0.0f, 0.0f},{0.0f, 0.0f}},
+			{{ 0.5f, -0.5f}, {1.0f, 0.0f},{1.0f, 0.0f}},
+			{{ 0.5f,  0.5f}, {1.0f, 1.0f},{1.0f, 1.0f}},
+			{{-0.5f,  0.5f}, {0.0f, 1.0f},{0.0f, 1.0f}},
 		};
 	std::vector<std::uint32_t> indices =
 	{
@@ -242,7 +279,7 @@ void KGR::_Vulkan::VulkanCore::recreateSwapChain(GLFWwindow* window)
 
 	graphicsPipeline = _Vulkan::Pipeline(info, &device, &swapChain,&descriptorSetLayout,&physicalDevice, vk::PolygonMode::eFill,Vertex::getBindingDescription(),Vertex::getAttributeDescriptions());
 	linePipeLine = _Vulkan::Pipeline(info2, &device, &swapChain, &descriptorSetLayout, &physicalDevice, vk::PolygonMode::eFill, SegmentVertex::getBindingDescription(), SegmentVertex::getAttributeDescriptions());
-	uiPipeline = _Vulkan::Pipeline::CreateUiPipeline(info3, &device, &swapChain, &uiLayout, &physicalDevice, Vertex2D::getBindingDescription(), Vertex2D::getAttributeDescriptions());
+	uiPipeline = _Vulkan::Pipeline::CreateUiPipeline(info3, &device, &swapChain, &uiLayout, &physicalDevice, Vertex2D::getBindingDescription(), Vertex2D::getAttributeDescriptions(), sizeof(UiData::UiValidData));
 
 	vk::Format depthFormat = physicalDevice.findSupportedFormat(
 		{ vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint },
@@ -368,12 +405,15 @@ void KGR::_Vulkan::VulkanCore::RenderSceneToOffscreen(KGR::Editor::Offscreen& ta
 		{
 			it.mesh->Bind(cmd, i);
 			cmd->pushConstants<glm::mat4>(
-				graphicsPipeline.GetLayout(), vk::ShaderStageFlagBits::eVertex, 0, it.matrixModel);
+				graphicsPipeline.GetLayout(), vk::ShaderStageFlagBits::eVertex, 0, glm::mat4{});
 			cmd->bindDescriptorSets(
 				vk::PipelineBindPoint::eGraphics, graphicsPipeline.GetLayout(), 0, *descriptorSets.Get(), nullptr);
 			cmd->bindDescriptorSets(
 				vk::PipelineBindPoint::eGraphics, graphicsPipeline.GetLayout(), 1, *m_LightSet.Get(), nullptr);
-			it.texture->at(i)->Bind(cmd, &graphicsPipeline.GetLayout(), 2);
+			it.texture.at(i).baseColor->Bind(cmd, &graphicsPipeline.GetLayout(), 2);
+			it.texture.at(i).pbrMap->Bind(cmd, &graphicsPipeline.GetLayout(), 3);
+			it.texture.at(i).emissive->Bind(cmd, &graphicsPipeline.GetLayout(), 4);
+			it.texture.at(i).normalMap->Bind(cmd, &graphicsPipeline.GetLayout(), 5);
 			cmd->drawIndexed(it.mesh->GetSubMesh(i).IndexCount(), 1, 0, 0, 0);
 		}
 	}
@@ -402,11 +442,10 @@ void KGR::_Vulkan::VulkanCore::RenderSceneToOffscreen(KGR::Editor::Offscreen& ta
 		vk::ImageAspectFlagBits::eColor, *cmd);
 }
 
-void KGR::_Vulkan::VulkanCore::transitionImageLayout(const vk::raii::Image& image, vk::ImageLayout oldLayout,
+void KGR::_Vulkan::VulkanCore::transitionImageLayout(vk::raii::CommandBuffer* commandBuffer,const vk::raii::Image& image, vk::ImageLayout oldLayout,
 	vk::ImageLayout newLayout, uint32_t mipLevels)
 {
-	auto& commandBuffer = commandBuffers.Acquire(&device);
-	commandBuffer.begin({ .flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit });
+
 	vk::ImageMemoryBarrier barrier{ .oldLayout = oldLayout, .newLayout = newLayout, .image = image, .subresourceRange = {vk::ImageAspectFlagBits::eColor, 0, mipLevels, 0, 1} };
 	vk::PipelineStageFlags sourceStage;
 	vk::PipelineStageFlags destinationStage;
@@ -431,15 +470,10 @@ void KGR::_Vulkan::VulkanCore::transitionImageLayout(const vk::raii::Image& imag
 	{
 		throw std::invalid_argument("unsupported layout transition!");
 	}
-	commandBuffer.pipelineBarrier(sourceStage, destinationStage, {}, {}, nullptr, barrier);
-	commandBuffer.end();
-	vk::SubmitInfo submitInfo{ .commandBufferCount = 1, .pCommandBuffers = &*commandBuffer };
-	queue.Get().submit(submitInfo, nullptr);
-	queue.Get().waitIdle();
-	commandBuffers.ReleaseCommandBuffer(commandBuffer);
+	commandBuffer->pipelineBarrier(sourceStage, destinationStage, {}, {}, nullptr, barrier);
 }
 
-void KGR::_Vulkan::VulkanCore::generateMipmaps(vk::raii::Image& image, vk::Format imageFormat, int32_t texWidth,
+void KGR::_Vulkan::VulkanCore::generateMipmaps(vk::raii::CommandBuffer* commandBuffer,vk::raii::Image& image, vk::Format imageFormat, int32_t texWidth,
 	int32_t texHeight, uint32_t mipLevels)
 {
 	// Check if image format supports linear blit-ing
@@ -450,10 +484,7 @@ void KGR::_Vulkan::VulkanCore::generateMipmaps(vk::raii::Image& image, vk::Forma
 		throw std::runtime_error("texture image format does not support linear blitting!");
 	}
 
-	vk::raii::CommandBuffer& commandBuffer = commandBuffers.Acquire(&device);
-	vk::CommandBufferBeginInfo beginInfo{
-		.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit };
-	commandBuffer.begin(beginInfo);
+
 
 	vk::ImageMemoryBarrier barrier = { .srcAccessMask = vk::AccessFlagBits::eTransferWrite, .dstAccessMask = vk::AccessFlagBits::eTransferRead, .oldLayout = vk::ImageLayout::eTransferDstOptimal, .newLayout = vk::ImageLayout::eTransferSrcOptimal, .srcQueueFamilyIndex = vk::QueueFamilyIgnored, .dstQueueFamilyIndex = vk::QueueFamilyIgnored, .image = image };
 	barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
@@ -472,7 +503,7 @@ void KGR::_Vulkan::VulkanCore::generateMipmaps(vk::raii::Image& image, vk::Forma
 		barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
 		barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
 
-		commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, {}, {}, {}, barrier);
+		commandBuffer->pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, {}, {}, {}, barrier);
 
 		vk::ArrayWrapper1D<vk::Offset3D, 2> offsets, dstOffsets;
 		offsets[0] = vk::Offset3D(0, 0, 0);
@@ -483,14 +514,14 @@ void KGR::_Vulkan::VulkanCore::generateMipmaps(vk::raii::Image& image, vk::Forma
 		blit.srcSubresource = vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, i - 1, 0, 1);
 		blit.dstSubresource = vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, i, 0, 1);
 
-		commandBuffer.blitImage(image, vk::ImageLayout::eTransferSrcOptimal, image, vk::ImageLayout::eTransferDstOptimal, { blit }, vk::Filter::eLinear);
+		commandBuffer->blitImage(image, vk::ImageLayout::eTransferSrcOptimal, image, vk::ImageLayout::eTransferDstOptimal, { blit }, vk::Filter::eLinear);
 
 		barrier.oldLayout = vk::ImageLayout::eTransferSrcOptimal;
 		barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 		barrier.srcAccessMask = vk::AccessFlagBits::eTransferRead;
 		barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
 
-		commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eFragmentShader, {}, {}, {}, barrier);
+		commandBuffer->pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eFragmentShader, {}, {}, {}, barrier);
 
 		if (mipWidth > 1)
 			mipWidth /= 2;
@@ -504,12 +535,8 @@ void KGR::_Vulkan::VulkanCore::generateMipmaps(vk::raii::Image& image, vk::Forma
 	barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
 	barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
 
-	commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eFragmentShader, {}, {}, {}, barrier);
-	commandBuffer.end();
-	vk::SubmitInfo submitInfo{ .commandBufferCount = 1, .pCommandBuffers = &*commandBuffer };
-	queue.Get().submit(submitInfo, nullptr);
-	queue.Get().waitIdle();
-	commandBuffers.ReleaseCommandBuffer(commandBuffer);
+	commandBuffer->pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eFragmentShader, {}, {}, {}, barrier);
+
 }
 
 
@@ -538,11 +565,8 @@ int KGR::_Vulkan::VulkanCore::BeginRendering(GLFWwindow* window, vk::raii::Comma
 {
 	// Note: inFlightFences, presentCompleteSemaphores, and commandBuffers are indexed by frameIndex,
 	//       while renderFinishedSemaphores is indexed by imageIndex
-	auto fenceResult = device.Get().waitForFences(*syncObject.GetCurrentFence(), vk::True, UINT64_MAX);
-	device.Get().resetFences(*syncObject.GetCurrentFence());
+	
 
-	if (fenceResult != vk::Result::eSuccess)
-		throw std::runtime_error("failed to wait for fence!");
 
 	std::uint32_t result = syncObject.AcquireNextImage(&swapChain, &device);
 
@@ -641,8 +665,6 @@ int KGR::_Vulkan::VulkanCore::EndRendering(GLFWwindow* window, vk::raii::Command
 
 	device.Get().resetFences({ commandBuffers.GetFence(*currentBuffer) });
 	queue.Get().submit(submitInfo, commandBuffers.GetFence(*currentBuffer));
-
-
 	queue.Get().submit({}, *syncObject.GetCurrentFence());
 
 	auto result = PresentImage();
@@ -672,6 +694,10 @@ vk::Bool32 KGR::_Vulkan::VulkanCore::debugCallback(vk::DebugUtilsMessageSeverity
 
 KGR::_Vulkan::Image KGR::_Vulkan::VulkanCore::CreateImage(const std::string& filePath)
 {
+	auto& commandBuffer = commandBuffers.Acquire(&device);
+	commandBuffer.begin({ .flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit });
+
+
 	auto& image = STBManager::Load(filePath);
 	vk::DeviceSize imageSize = image.width * image.height * 4;
 	KGR::_Vulkan::Buffer buffer = KGR::_Vulkan::Buffer(&device, &physicalDevice, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, imageSize);
@@ -679,14 +705,56 @@ KGR::_Vulkan::Image KGR::_Vulkan::VulkanCore::CreateImage(const std::string& fil
 	buffer.Upload(image.pixels, imageSize);
 	buffer.UnMapMemory();
 	uint32_t mipLevel = static_cast<uint32_t>(std::floor(std::log2(std::max(image.width, image.height)))) + 1;
-	KGR::_Vulkan::Image textureImage = KGR::_Vulkan::Image(image.width, image.height, mipLevel, vk::Format::eR8G8B8A8Srgb, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled, vk::MemoryPropertyFlagBits::eDeviceLocal, &device, &physicalDevice);
-	transitionImageLayout(textureImage.Get(), vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, textureImage.GetMimMap());
-	buffer.CopyImage(&textureImage, &device, &queue, &commandBuffers);
-	textureImage.CreateView(vk::Format::eR8G8B8A8Srgb, vk::ImageAspectFlagBits::eColor, &device);
-	generateMipmaps(textureImage.Get(), vk::Format::eR8G8B8A8Srgb, textureImage.GetWidth(), textureImage.GetHeight(), textureImage.GetMimMap());
+	KGR::_Vulkan::Image textureImage = KGR::_Vulkan::Image(image.width, image.height, mipLevel, vk::Format::eR8G8B8A8Unorm, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled, vk::MemoryPropertyFlagBits::eDeviceLocal, &device, &physicalDevice);
+	transitionImageLayout(&commandBuffer,textureImage.Get(), vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, textureImage.GetMimMap());
+	buffer.CopyImage(&commandBuffer,&textureImage, &device, &queue, &commandBuffers);
+	textureImage.CreateView(vk::Format::eR8G8B8A8Unorm, vk::ImageAspectFlagBits::eColor, &device);
+	generateMipmaps(&commandBuffer, textureImage.Get(), vk::Format::eR8G8B8A8Unorm, textureImage.GetWidth(), textureImage.GetHeight(), textureImage.GetMimMap());
+
+	commandBuffer.end();
+	vk::SubmitInfo submitInfo{ .commandBufferCount = 1, .pCommandBuffers = &*commandBuffer };
+	device.Get().resetFences(*commandBuffers.GetFence(commandBuffer));
+	queue.Get().submit(submitInfo, commandBuffers.GetFence(commandBuffer));
+	commandBuffers.ReleaseCommandBuffer(commandBuffer);
+	auto fenceResult = device.Get().waitForFences({ commandBuffers.GetFence(commandBuffer) }, vk::True, UINT64_MAX);
+
 
 	return textureImage;
 }
+
+KGR::_Vulkan::Image KGR::_Vulkan::VulkanCore::CreateImageFromData(const unsigned char* pixels, int width, int height)
+{
+	auto& commandBuffer = commandBuffers.Acquire(&device);
+	commandBuffer.begin({ .flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit });
+
+
+	vk::DeviceSize imageSize = static_cast<vk::DeviceSize>(width) * height * 4;
+	KGR::_Vulkan::Buffer buffer = KGR::_Vulkan::Buffer(&device, &physicalDevice, vk::BufferUsageFlagBits::eTransferSrc,
+		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, imageSize);
+	buffer.MapMemory(imageSize);
+	buffer.Upload(pixels, imageSize);
+	buffer.UnMapMemory();
+	uint32_t mipLevel = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
+	KGR::_Vulkan::Image textureImage = KGR::_Vulkan::Image(width, height, mipLevel, vk::Format::eR8G8B8A8Unorm,
+		vk::ImageTiling::eOptimal,
+		vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
+		vk::MemoryPropertyFlagBits::eDeviceLocal, &device, &physicalDevice);
+	transitionImageLayout(&commandBuffer,textureImage.Get(), vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, textureImage.GetMimMap());
+	buffer.CopyImage(&commandBuffer,&textureImage, &device, &queue, &commandBuffers);
+	textureImage.CreateView(vk::Format::eR8G8B8A8Unorm, vk::ImageAspectFlagBits::eColor, &device);
+	generateMipmaps(&commandBuffer,textureImage.Get(), vk::Format::eR8G8B8A8Unorm, textureImage.GetWidth(), textureImage.GetHeight(), textureImage.GetMimMap());
+
+	commandBuffer.end();
+	vk::SubmitInfo submitInfo{ .commandBufferCount = 1, .pCommandBuffers = &*commandBuffer };
+	device.Get().resetFences(*commandBuffers.GetFence(commandBuffer));
+	queue.Get().submit(submitInfo, commandBuffers.GetFence(commandBuffer));
+	commandBuffers.ReleaseCommandBuffer(commandBuffer);
+	auto fenceResult = device.Get().waitForFences({ commandBuffers.GetFence(commandBuffer) }, vk::True, UINT64_MAX);
+
+	return textureImage;
+}
+
+
 
 KGR::_Vulkan::DescriptorSet KGR::_Vulkan::VulkanCore::CreateSetForImage(Image* image)
 {
@@ -726,35 +794,105 @@ void KGR::_Vulkan::VulkanCore::RegisterCam(const glm::mat4& model, const glm::ma
 	m_ubo->proj[1][1] *= -1;
 }
 
-void KGR::_Vulkan::VulkanCore::RegisterRender(Mesh& mesh, const  glm::mat4& model,std::vector<Texture*>& texture)
+void KGR::_Vulkan::VulkanCore::RegisterRender(Mesh& mesh, const  glm::mat4& model, const  std::vector<Material>& texture)
 {
 	if (texture.size() != mesh.GetSubMeshesCount())
 		throw std::out_of_range("need same amount of subMeshes and texture");
-	m_toRenderObject.push_back(MeshData{ model ,&mesh,&texture });
+	for (auto& e : m_toRenderObject)
+	{
+		if (IsSameMesh(&mesh, texture, e.mesh, e.texture))
+		{
+			e.matrixModels.push_back(model);
+			return;
+		}
+	}
+	m_toRenderObject.push_back(MeshData{ {model},&mesh,texture });
 }
 
-void KGR::_Vulkan::VulkanCore::RegisterUi(const UiData& data, Texture* texture,const glm::vec2& screenSize)
+void KGR::_Vulkan::VulkanCore::RegisterUi(const UiData& data, Texture* texture,const glm::vec2& screenSize, Texture* whiteTexture)
 {
 	auto valid = data.GetValid();
 	valid.raw1[3] = screenSize.x;
 	valid.raw2[3] = screenSize.y;
-	uIRender.emplace_back( texture, valid);
+	uIRender.emplace_back( texture, valid,whiteTexture);
 }
+
+void KGR::_Vulkan::VulkanCore::RegisterText(Text* text, Texture* texture, const UiData& data,
+	const glm::vec2& screenSize)
+{
+
+	text->Upload(this);
+	auto valid = data.GetValid();
+	valid.raw1[3] = screenSize.x;
+	valid.raw2[3] = screenSize.y;
+	m_textData.emplace_back(text,texture,valid);
+}
+
 
 void KGR::_Vulkan::VulkanCore::Render(GLFWwindow* window, const glm::vec4& color, ImDrawData* imguiDraw, KGR::Editor::Offscreen* offscreen)
 {
 	if (!m_ubo.has_value())
 		throw std::runtime_error("need to register Camera");
 
-	uniformBuffers.Upload(&m_ubo.value(), uniformBuffers.GetSize());
-	StorageContainer<LightData, 200> lData = StorageContainer<LightData, 200>::FromVec(m_lights);
-	m_lightBuffer.Upload(lData.Data(), lData.UploadSize());
-	m_lightCount.Upload(lData.GetSizeData(), m_lightCount.GetSize());
-
 	auto currentBuffer = &commandBuffers.Acquire(&device);
+
+	auto fenceResult = device.Get().waitForFences(*syncObject.GetCurrentFence(), vk::True, UINT64_MAX);
+	device.Get().resetFences(*syncObject.GetCurrentFence());
+
+	syncObject.Clear();
+
 	currentBuffer->reset();
 	currentBuffer->begin({});
 
+
+
+	{
+		size_t Size = sizeof(UniformBufferObject);
+		auto stagingUbo = KGR::_Vulkan::Buffer(&device, &physicalDevice, vk::BufferUsageFlagBits::eTransferSrc,
+			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, Size);
+		stagingUbo.MapMemory(Size);
+		stagingUbo.Upload(&m_ubo.value(), uniformBuffers.GetSize());
+		stagingUbo.UnMapMemory();
+
+		uniformBuffers.CopyAssync(currentBuffer,&stagingUbo, &device, &queue);
+		syncObject.Add(std::move(stagingUbo));
+	}
+
+	{
+		size_t Size = StorageContainer<LightData, 1000>::Capacity();
+		auto stagingUbo = KGR::_Vulkan::Buffer(&device, &physicalDevice, vk::BufferUsageFlagBits::eTransferSrc,
+			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, Size);
+		stagingUbo.MapMemory(Size);
+		StorageContainer<LightData, 1000> lData = StorageContainer<LightData, 1000>::FromVec(m_lights);
+		stagingUbo.Upload(lData.Data(), lData.UploadSize());
+		stagingUbo.UnMapMemory();
+
+		m_lightBuffer.CopyAssync(currentBuffer, &stagingUbo, &device, &queue);
+		syncObject.Add(std::move(stagingUbo));
+
+		m_lightCount.Upload(lData.GetSizeData(), m_lightCount.GetSize());
+	}
+
+	std::vector<glm::mat4 > totalModels;
+	for (auto& it : m_toRenderObject)
+		for (auto& mat : it.matrixModels)
+			totalModels.push_back(mat);
+
+	{
+
+		size_t Size = StorageContainer < glm::mat4, 5000 >::Capacity();
+		auto stagingUbo = KGR::_Vulkan::Buffer(&device, &physicalDevice, vk::BufferUsageFlagBits::eTransferSrc,
+			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, Size);
+		stagingUbo.MapMemory(Size);
+		StorageContainer < glm::mat4, 5000 >lData = StorageContainer < glm::mat4, 5000 >::FromVec(totalModels);
+		stagingUbo.Upload(lData.Data(), lData.UploadSize());
+		stagingUbo.UnMapMemory();
+
+		m_transformBuffer.CopyAssync(currentBuffer, &stagingUbo, &device, &queue);
+		syncObject.Add(std::move(stagingUbo));
+	}
+
+	
 	// --- OFFSCREEN PASS ---------------------------------------------------
 	// When an OffscreenTarget is provided we render the 3D scene into it
 	// BEFORE acquiring the swapchain image.  Both passes share the same
@@ -768,7 +906,6 @@ void KGR::_Vulkan::VulkanCore::Render(GLFWwindow* window, const glm::vec4& color
 	// If we rendered to offscreen, the swapchain only needs the ImGui layer.
 	// Pass a neutral clear colour so we don't see the scene painted twice.
 	glm::vec4 swapchainClear = offscreen ? glm::vec4(0.0f, 0.0f, 0.0f, 1.0f) : color;
-
 	int result = BeginRendering(window, currentBuffer, &graphicsPipeline, swapchainClear);
 	if (result == -1)
 	{
@@ -776,28 +913,66 @@ void KGR::_Vulkan::VulkanCore::Render(GLFWwindow* window, const glm::vec4& color
 		m_toRenderObject.clear();
 		m_lights.clear();
 		uIRender.clear();
+		m_textData.clear();
 		return;
 	}
 
 	// Legacy path: no offscreen target → draw the scene to the swapchain directly.
 	if (!offscreen)
 	{
-		currentBuffer->bindPipeline(vk::PipelineBindPoint::eGraphics, *graphicsPipeline.Get());
+		
 
+
+		currentBuffer->bindPipeline(vk::PipelineBindPoint::eGraphics, *graphicsPipeline.Get());
+		currentBuffer->bindDescriptorSets(
+			vk::PipelineBindPoint::eGraphics, graphicsPipeline.GetLayout(), 0, *descriptorSets.Get(), nullptr);
+		currentBuffer->bindDescriptorSets(
+			vk::PipelineBindPoint::eGraphics, graphicsPipeline.GetLayout(), 1, *m_LightSet.Get(), nullptr);
+		currentBuffer->bindDescriptorSets(vk::PipelineBindPoint::eGraphics, graphicsPipeline.GetLayout(), 6, *m_transformSet.Get(), nullptr);
+
+		Texture* lastbaseColor = nullptr;
+		Texture* lastpbrMap	   = nullptr;
+		Texture* lastemissive  = nullptr;
+		Texture* lastnormalMap = nullptr;
+
+		
+
+
+		size_t instanceIndex = 0;
 		for (auto& it : m_toRenderObject)
 		{
 			for (int i = 0; i < it.mesh->GetSubMeshesCount(); ++i)
 			{
 				it.mesh->Bind(currentBuffer, i);
 				currentBuffer->pushConstants<glm::mat4>(
-					graphicsPipeline.GetLayout(), vk::ShaderStageFlagBits::eVertex, 0, it.matrixModel);
-				currentBuffer->bindDescriptorSets(
-					vk::PipelineBindPoint::eGraphics, graphicsPipeline.GetLayout(), 0, *descriptorSets.Get(), nullptr);
-				currentBuffer->bindDescriptorSets(
-					vk::PipelineBindPoint::eGraphics, graphicsPipeline.GetLayout(), 1, *m_LightSet.Get(), nullptr);
-				it.texture->at(i)->Bind(currentBuffer, &graphicsPipeline.GetLayout(), 2);
-				currentBuffer->drawIndexed(it.mesh->GetSubMesh(i).IndexCount(), 1, 0, 0, 0);
+					graphicsPipeline.GetLayout(), vk::ShaderStageFlagBits::eVertex, 0, glm::mat4{});
+
+				if (lastbaseColor != it.texture.at(i).baseColor)
+				{
+					it.texture.at(i).baseColor->Bind(currentBuffer, &graphicsPipeline.GetLayout(), 2);
+					lastbaseColor = it.texture.at(i).baseColor;
+				}
+
+				if (lastpbrMap != it.texture.at(i).pbrMap)
+				{
+					it.texture.at(i).pbrMap->Bind(currentBuffer, &graphicsPipeline.GetLayout(), 3);
+					lastpbrMap = it.texture.at(i).pbrMap;
+				}
+
+				if (lastemissive != it.texture.at(i).emissive)
+				{
+					it.texture.at(i).emissive->Bind(currentBuffer, &graphicsPipeline.GetLayout(), 4);
+					lastemissive = it.texture.at(i).emissive;
+				}
+
+				if (lastnormalMap != it.texture.at(i).normalMap)
+				{
+					it.texture.at(i).normalMap->Bind(currentBuffer, &graphicsPipeline.GetLayout(), 5);
+					lastnormalMap = it.texture.at(i).normalMap;
+				}
+				currentBuffer->drawIndexed(it.mesh->GetSubMesh(i).IndexCount(), it.matrixModels.size(), 0, 0, static_cast<uint32_t>(instanceIndex));
 			}
+			instanceIndex += it.matrixModels.size() ;
 		}
 	}
 	//currentBuffer->bindPipeline(vk::PipelineBindPoint::eGraphics, *linePipeLine.Get());
@@ -814,33 +989,40 @@ void KGR::_Vulkan::VulkanCore::Render(GLFWwindow* window, const glm::vec4& color
 		// bind the vertex and indexBuffer
 		currentBuffer->bindVertexBuffers(0, *uiVertexBuffer.Get(), {0});
 		currentBuffer->bindIndexBuffer(*uiIndexBuffer.Get(), 0, vk::IndexType::eUint32);
-		currentBuffer->pushConstants<UiData::UiValidData>(uiPipeline.GetLayout(), vk::ShaderStageFlagBits::eVertex, 0,ui.second);
-		ui.first->Bind(currentBuffer, &uiPipeline.GetLayout(), 0);
+		currentBuffer->pushConstants<UiData::UiValidData>(uiPipeline.GetLayout(), vk::ShaderStageFlagBits::eVertex, 0,ui.data);
+		ui.texture->Bind(currentBuffer, &uiPipeline.GetLayout(), 0);
+		ui.whiteTexture->Bind(currentBuffer, &uiPipeline.GetLayout(), 1);
 		currentBuffer->drawIndexed(static_cast<std::uint32_t>(uiIndexBuffer.GetSize() / sizeof(std::uint32_t)), 1, 0, 0, 0);
-		currentBuffer->bindPipeline(vk::PipelineBindPoint::eGraphics, *linePipeLine.Get());
-		currentBuffer->bindDescriptorSets(
-			vk::PipelineBindPoint::eGraphics, graphicsPipeline.GetLayout(), 0, *descriptorSets.Get(), nullptr);
-		currentBuffer->bindVertexBuffers(0, *vertexBuffer.Get(), { 0 });
-		currentBuffer->bindIndexBuffer(*indexBuffer.Get(), 0, vk::IndexType::eUint32);
-		currentBuffer->drawIndexed(36, 1, 0, 0, 0);
 	}
 
-	// --- DEBUG RENDER ---
-	/*debugRenderer.Upload();
-	currentBuffer->bindPipeline(vk::PipelineBindPoint::eGraphics, *linePipeLine.Get());
-	vk::DeviceSize offset = 0;
-	currentBuffer->bindVertexBuffers(0, *debugRenderer.GetBuffer().Get(), offset);
-	currentBuffer->draw(static_cast<uint32_t>(debugRenderer.GetVertexCount()), 1, 0, 0);*/
+	for (auto& ui : m_textData)
+	{
+		// bind the vertex and indexBuffer
+		ui.text->Bind(currentBuffer);
+		currentBuffer->pushConstants<UiData::UiValidData>(uiPipeline.GetLayout(), vk::ShaderStageFlagBits::eVertex, 0,ui.data);
+		ui.texture->Bind(currentBuffer, &uiPipeline.GetLayout(), 0);
+		ui.text->textTexture->Bind(currentBuffer, &uiPipeline.GetLayout(), 1);
+		currentBuffer->drawIndexed(static_cast<std::uint32_t>(ui.text->GetIndexSize()), 1, 0, 0, 0);
+	}
+
 
 	EndRendering(window, currentBuffer, { syncObject.GetCurrentPresentSemaphore() }, imguiDraw);
+
 	commandBuffers.ReleaseCommandBuffer(*currentBuffer);
 	syncObject.IncrementFrame();
-	device.Get().waitIdle();
 
 	m_ubo.reset();
 	m_toRenderObject.clear();
 	m_lights.clear(); 
 	uIRender.clear();
+	m_textData.clear();
+}
+
+void KGR::_Vulkan::VulkanCore::Destroy()
+{
+	device.Get().waitIdle();
+
+	commandBuffers.Clear();
 }
 
 KGR::_Vulkan::Instance& KGR::_Vulkan::VulkanCore::GetInstance()
@@ -942,5 +1124,7 @@ const KGR::_Vulkan::DebugRenderer& KGR::_Vulkan::VulkanCore::GetDebugRenderer() 
 {
 	return debugRenderer;
 }
+
+
 
 //IMPL

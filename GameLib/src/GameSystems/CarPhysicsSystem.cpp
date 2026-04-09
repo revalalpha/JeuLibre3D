@@ -44,10 +44,26 @@ void CarPhysicsSystem::Update(ecsType& registry, float dt)
         }
 
 		//Engine braking
-        if (physic.throttle == 0.0f)
+        if (physic.throttle <  -0.01f)
         {
-            float engineBrake = 25.0f;
-            totalForce -= forward * (engineBrake * glm::sign(vLocal.z));
+            float speed = glm::length(physic.velocity);
+            float minBrake = 2.0f;
+            float maxBrake = 18.0f;
+
+            float speedFactor = glm::clamp(speed / 40.0f, 0.0f, 0.1f);
+
+            float engineBrake = glm::mix(minBrake, maxBrake, speedFactor);
+
+            float forwardSpeed = vLocal.z;
+
+            if(glm::abs(forwardSpeed)> 0.5f)
+                totalForce -= forward * (engineBrake * glm::sign(forwardSpeed));
+        }
+
+        if (physic.throttle >= -0.01f && physic.throttle <= 0.01f)
+        {
+            float coastBrake = 1.5f;
+            totalForce -= forward * (coastBrake * glm::sign(vLocal.z));
         }
 
         if (control.handBraking)
@@ -107,30 +123,32 @@ void CarPhysicsSystem::Update(ecsType& registry, float dt)
         glm::vec3 accel = totalForce / physic.mass;
 
 		//Limit acceleration to prevent instability
-        float maxAccel = 35.0f;
-        float maxSpeed = 100.0f;
+        float maxAccel = 50.0f;
+        float maxSpeed = 200.0f;
         if (glm::length(accel) > maxAccel)
             accel = glm::normalize(accel) * maxAccel;
 
         float speed = glm::length(physic.velocity);
+        float speedRatio = glm::clamp(speed / maxSpeed, 0.0f, 1.0f);
         float accelFactor = glm::pow(1.0f - (speed / maxSpeed), 0.4f);
+
         if (physic.throttle >= 0.0f)
         {
-            accelFactor = glm::pow(1.0f - glm::clamp(speed / maxSpeed, 0.0f, 1.0f), 0.4f);
+            float kickIn = glm::smoothstep(0.0f, 0.5f, speedRatio);
+            float highEnd = glm::pow(1.0f - speedRatio, 1.2f);
+
+            accelFactor = glm::mix(1.2f, highEnd, kickIn);
         }
         else
         {
             accelFactor = glm::pow(1.0f - glm::clamp(-speed / (maxSpeed * 0.5f), 0.0f, 1.0f), 0.4f);
         }  
-        
         accelFactor = glm::clamp(accelFactor, 0.0f, 1.0f);
-   
         accel *= accelFactor;
-
         physic.velocity += accel * dt;
 
         //Damping
-        float damping = 0.999f;
+        float damping = glm::mix(0.995f, 0.97f, speedRatio * speedRatio);
         physic.velocity -= physic.velocity * damping * dt;
 
 		//Limit speed
@@ -147,9 +165,6 @@ void CarPhysicsSystem::Update(ecsType& registry, float dt)
         transform.Translate(physic.velocity * dt);
 
         //Rotate
-        
-
-        
         //Update
         float minSteer = 0.0028f;
         float maxSteer = 0.06f;
@@ -165,11 +180,11 @@ void CarPhysicsSystem::Update(ecsType& registry, float dt)
         float delta = std::atan2(std::sin(targetAngle - currentYaw), std::cos(targetAngle - currentYaw));
 
         float alignFactor  = 1.0f - glm::clamp(glm::abs(delta) * 0.03f, 0.0f, 1.0f);
+        float speedSteerFactor = glm::smoothstep(0.0f, 5.0f, speed);
 
-        float yaw = physic.smoothSteering * steerAngleMax * 0.62f * alignFactor;
+        float yaw = physic.smoothSteering * steerAngleMax * 0.62f * alignFactor * speedSteerFactor;
         
-        if(control.speed > 0.0f)
-            currentYaw += yaw;
+        currentYaw += yaw;
 
         if (speed > 2.0f)
         {
