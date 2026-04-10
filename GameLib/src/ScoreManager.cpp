@@ -65,3 +65,9 @@ void ScoreManager::ResetScore(float dt)
 		cancelTimer = 3.f;
 	}
 }
+
+void ScoreManager::SetHighScore()
+{
+	if (m_highScore < m_score)
+		m_highScore = m_score;
+}

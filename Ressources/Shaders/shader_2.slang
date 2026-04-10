@@ -248,5 +248,6 @@ float4 fragMain(VSOutput vertIn) : SV_TARGET {
     }
     result += emessive * 3.0f;
 
+    result = pow(result, (1.0f / 2.2f).xxx);
     return float4(result,1.0f);
 }

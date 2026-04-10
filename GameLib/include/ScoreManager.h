@@ -3,6 +3,8 @@
 class ScoreManager
 {
 public:
+	ScoreManager() = default;
+
 	static ScoreManager& GetInstance()
 	{
 		static ScoreManager instance;
@@ -30,6 +32,7 @@ private:
 	void ComputeMult(float dt);
 	void AddScore(float points);
 	void ResetScore(float dt);
+	void SetHighScore();
 
 
 	int m_highScore = 0;
