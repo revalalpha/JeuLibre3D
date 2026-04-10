@@ -47,7 +47,7 @@ void CarCollisionSystem::Update(ecsType& registry, KGR::RenderWindow& window, fl
 
 
             glm::vec3 normal = glm::normalize(col.GetCollisionNormal());
-            if (normal.y > 0.8f)
+            if (normal.y > 0.8f || normal.y < -0.8f)
                 continue;
 
             float penetration = col.GetPenetration();
@@ -55,7 +55,9 @@ void CarCollisionSystem::Update(ecsType& registry, KGR::RenderWindow& window, fl
             if (glm::dot(carPhys.velocity, normal) > 0.0f)
                 normal = -normal;
 
-            carTr.SetPosition(carTr.GetPosition() + normal * (penetration + 0.02f));
+            glm::vec3 newPos = carTr.GetPosition() + normal * (penetration + 0.02f);
+            newPos.y = 0.31f;
+            carTr.SetPosition(newPos);
 
             carOBB = carCol.collider->ComputeGlobalOBB(
                 carTr.GetScale(),
@@ -64,20 +66,21 @@ void CarCollisionSystem::Update(ecsType& registry, KGR::RenderWindow& window, fl
             );
 
             float vn = glm::dot(carPhys.velocity, normal);
-
             if (vn < 0.0f)
             {
                 carPhys.velocity -= normal * vn;
-
-                float bounce = 0.5f;
+                float bounce = 0.2f;
                 carPhys.velocity += normal * bounce * (-vn);
 
-                glm::vec3 tangent = glm::normalize(carPhys.velocity - glm::dot(carPhys.velocity, normal) * normal);
-
-                if (glm::dot(tangent, normal) < 0.0f)
-                    carPhys.velocity += tangent * 1.0f;
+                glm::vec3 lateralVel = carPhys.velocity - glm::dot(carPhys.velocity, normal) * normal;
+                if (glm::length(lateralVel) > 0.001f)
+                {
+                    glm::vec3 tangent = glm::normalize(lateralVel);
+                    if (glm::dot(tangent, normal) < 0.0f)
+                        carPhys.velocity += tangent * 1.0f;
+                }
             }
-            std::cout << "Normal: " << normal.y << "\n";
+
             float maxSpeed = 5.0f;
             float speed = glm::length(carPhys.velocity);
             if (speed > maxSpeed)

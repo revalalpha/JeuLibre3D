@@ -47,10 +47,10 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 	for (int i = 0; i < mesh.mesh->GetSubMeshesCount(); ++i)
 	{
 		Material mat;
-		mat.baseColor = &TextureLoader::Load("Textures/Car/Car_Base_Color.png", window.App());
+		mat.baseColor = &TextureLoader::Load("Textures/Car/texture_voiture.png", window.App());
 		//mat.emissive = &TextureLoader::Load("Textures/bloc_BaseColor_Emissive.png", window.App());
 		//mat.normalMap = &TextureLoader::Load("Textures/bloc_Normal.png", window.App());
-		mat.pbrMap = &TextureLoader::Load("Textures/Car/RGBMaterial.001.png", window.App());
+		mat.pbrMap = &TextureLoader::Load("Textures/Car/celica_body1_Material_OcclusionRoughnessMetallic.png", window.App());
 		text.materials[i] = mat;
 	}
 	
@@ -93,7 +93,7 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 			for (int i = 0; i < mesh.mesh->GetSubMeshesCount(); ++i)
 			{
 				Material mat;
-				mat.baseColor = &TextureLoader::Load("Textures/Car/texture voiture.png", window.App());
+				mat.baseColor = &TextureLoader::Load("Textures/Car/texture_voiture.png", window.App());
 				//mat.emissive = &TextureLoader::Load("Textures/bloc_BaseColor_Emissive.png", window.App());
 				//mat.normalMap = &TextureLoader::Load("Textures/bloc_Normal.png", window.App());
 				//mat.pbrMap = &TextureLoader::Load("Textures/bloc_ORM.png", window.App());
