@@ -19,7 +19,6 @@
 #include "Math/Collision2d.h"
 #include "Core/SceneManager.h"
 #include "Core/Scene.h"
-#include "IGameScene.h"
 
 int main(int argc, char** argv)
 {

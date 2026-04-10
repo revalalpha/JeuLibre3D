@@ -142,6 +142,7 @@ namespace KGR
          */
         glm::vec2 GetMousePosition() const;
         glm::vec2 GetMouseDelta() const ;
+		glm::vec2 GetMouseNdc() const;
 
         template<InputEnum T>
         bool IsKeyDown(T key)

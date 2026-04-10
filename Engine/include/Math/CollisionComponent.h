@@ -51,8 +51,10 @@ struct Collider
         glm::vec3 right = orientation * glm::vec3{ 1, 0, 0 };
         glm::vec3 up = orientation * glm::vec3{ 0, 1, 0 };
 
+        glm::vec3 fullSize = (localBox.m_max - localBox.m_min) * scale;
+        glm::vec3 halfSize = fullSize * 0.5f;
+
         glm::vec3 center = pos + orientation * (localBox.GetCenter() * scale);
-        glm::vec3 halfSize = localBox.GetHalfSize() * scale;
 
         return KGR::OBB3D(center, halfSize, right, up, forward);
     }

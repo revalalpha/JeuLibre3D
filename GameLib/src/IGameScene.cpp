@@ -29,7 +29,7 @@ void GameScene::Init(SceneManager* manager)
 
 	//Track
 	Track track;
-	track.CreateTrack(m_ecs, *m_window);
+	track.CreateMap(m_ecs, *m_window);
 
 
 	ScoreSystem score;

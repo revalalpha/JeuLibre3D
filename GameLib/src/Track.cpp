@@ -1,4 +1,4 @@
-#include "Track.h"
+﻿#include "Track.h"
 #include "Core/Mesh.h"
 #include "Core/TrasformComponent.h"
 #include "Core/Texture.h"
@@ -7,176 +7,88 @@
 #include "Math/Collision.h"
 #include "Math/CollisionComponent.h"
 
-void Track::SpawnRoadPieces(ecsType& registry, KGR::RenderWindow& window, const TrackComponent& track)
+KGR::ECS::Entity::_64 Track::CreateStaticMesh(
+    ecsType& registry,
+    KGR::RenderWindow& window,
+    const std::string& path, const std::string& texturePath)
 {
-    for (size_t i = 0; i < track.sampledPoints.size(); ++i)
+    auto e = registry.CreateEntity();
+
+    //Mesh
+    MeshComponent m;
+    m.mesh = &MeshLoader::Load(path, window.App());
+    registry.AddComponent<MeshComponent>(e, std::move(m));
+
+    //Transform
+    TransformComponent tr;
+    tr.SetPosition({ 0,0,0 });
+    tr.SetScale({ 1 / 2.0f,1 / 2.0f,1 / 2.0f });
+    tr.SetRotation({ 0,0,0 });
+    registry.AddComponent<TransformComponent>(e, std::move(tr));
+
+    MaterialComponent mat;
+    mat.materials.resize(m.mesh->GetSubMeshesCount());
+
+    for (int i = 0; i < m.mesh->GetSubMeshesCount(); ++i)
     {
-        auto e = registry.CreateEntity();
-
-        MeshComponent mesh;
-        auto* roadMesh = &MeshLoader::Load("Models\\CUBE.obj", window.App());
-        mesh.mesh = roadMesh;
-
-        TransformComponent transform;
-        transform.SetScale({ track.trackWidth, track.step, track.step * 40.0f });
-        transform.SetPosition(track.sampledPoints[i]);
-
-        // RMF orientation
-        transform.SetOrientation(glm::quatLookAt(track.frames[i].forward, track.frames[i].up));
-
-        //TextureComponent texture;
-        //texture.SetSize(mesh.mesh->GetSubMeshesCount());
-        //for (int j = 0; j < mesh.mesh->GetSubMeshesCount(); ++j)
-        //    texture.AddTexture(j, &TextureLoader::Load("Textures\\BaseTexture.png", window.App()));
-
-        // create a texture 
-        MaterialComponent text;
-        // allocate the size of the texture must be the same as the number of submeshes 
-        text.materials.resize(mesh.mesh->GetSubMeshesCount());
-        // then fill the texture ( this system need to be refact but for now you need to do it like that
-        for (int i = 0; i < mesh.mesh->GetSubMeshesCount(); ++i)
-        {
-            Material mat;
-            mat.baseColor = &TextureLoader::Load("Textures\\BaseTexture.png", window.App());
-            //mat.emissive = &TextureLoader::Load("Textures/bloc_BaseColor_Emissive.png", window.App());
-            //mat.normalMap = &TextureLoader::Load("Textures/bloc_Normal.png", window.App());
-            //mat.pbrMap = &TextureLoader::Load("Textures/bloc_ORM.png", window.App());
-            text.materials[i] = mat;
-        }
-
-
-
-        registry.AddComponents<MeshComponent, TransformComponent, MaterialComponent>(
-            e, std::move(mesh), std::move(transform), std::move(text));
-
-		//Walls genration
-        glm::vec3 forward = track.frames[i].forward;
-        glm::vec3 up = track.frames[i].up;
-        glm::vec3 right = glm::normalize(glm::cross(forward, up));
-
-        float halfWidth = track.trackWidth * 0.5f;
-
-		//Left wall
-        {
-            auto wall = registry.CreateEntity();
-
-            MeshComponent mesh;
-            mesh.mesh = &MeshLoader::Load("Models\\CUBE.obj", window.App());
-
-            //TextureComponent texture;
-            //texture.SetSize(mesh.mesh->GetSubMeshesCount());
-            //for (int j = 0; j < mesh.mesh->GetSubMeshesCount(); ++j)
-            //    texture.AddTexture(j, &TextureLoader::Load("Textures\\BaseTexture.png", window.App()));
-
-
-            // create a texture 
-            MaterialComponent text;
-            // allocate the size of the texture must be the same as the number of submeshes 
-            text.materials.resize(mesh.mesh->GetSubMeshesCount());
-            // then fill the texture ( this system need to be refact but for now you need to do it like that
-            for (int i = 0; i < mesh.mesh->GetSubMeshesCount(); ++i)
-            {
-                Material mat;
-                mat.baseColor = &TextureLoader::Load("Textures\\rouge.jpg", window.App());
-                //mat.emissive = &TextureLoader::Load("Textures/bloc_BaseColor_Emissive.png", window.App());
-                //mat.normalMap = &TextureLoader::Load("Textures/bloc_Normal.png", window.App());
-                //mat.pbrMap = &TextureLoader::Load("Textures/bloc_ORM.png", window.App());
-                text.materials[i] = mat;
-            }
-
-            CollisionComp collider;
-            collider.collider = new Collider();
-
-            collider.collider->localBox.m_min = glm::vec3(-0.1f, 0.0f, -0.5f);
-            collider.collider->localBox.m_max = glm::vec3(0.1f, 2.0f, 0.5f);
-
-            TransformComponent tr;
-            tr.SetScale({ 0.2f, 1.5f, track.step * 20.0f });
-            tr.SetPosition(track.sampledPoints[i] - right * halfWidth);
-            tr.SetOrientation(glm::quatLookAt(forward, up));
-
-
-            registry.AddComponents<MeshComponent, TransformComponent, MaterialComponent, CollisionComp>(
-                wall, std::move(mesh), std::move(tr), std::move(text), std::move(collider));
-        }
-
-		//Right wall
-        {
-            auto wall = registry.CreateEntity();
-
-            MeshComponent mesh;
-            mesh.mesh = &MeshLoader::Load("Models\\CUBE.obj", window.App());
-
-            //TextureComponent texture;
-            //texture.SetSize(mesh.mesh->GetSubMeshesCount());
-            //for (int j = 0; j < mesh.mesh->GetSubMeshesCount(); ++j)
-            //    texture.AddTexture(j, &TextureLoader::Load("Textures\\BaseTexture.png", window.App()));
-
-
-            // create a texture 
-            MaterialComponent text;
-            // allocate the size of the texture must be the same as the number of submeshes 
-            text.materials.resize(mesh.mesh->GetSubMeshesCount());
-            // then fill the texture ( this system need to be refact but for now you need to do it like that
-            for (int i = 0; i < mesh.mesh->GetSubMeshesCount(); ++i)
-            {
-                Material mat;
-                mat.baseColor = &TextureLoader::Load("Textures\\rouge.jpg", window.App());
-                //mat.emissive = &TextureLoader::Load("Textures/bloc_BaseColor_Emissive.png", window.App());
-                //mat.normalMap = &TextureLoader::Load("Textures/bloc_Normal.png", window.App());
-                //mat.pbrMap = &TextureLoader::Load("Textures/bloc_ORM.png", window.App());
-                text.materials[i] = mat;
-            }
-
-            CollisionComp collider;
-            collider.collider = new Collider();
-
-            collider.collider->localBox.m_min = glm::vec3(-0.1f, 0.0f, -0.5f);
-            collider.collider->localBox.m_max = glm::vec3(0.1f, 2.0f, 0.5f);
-
-            TransformComponent tr;
-            tr.SetScale({ 0.2f, 1.5f, track.step * 20.0f });
-            tr.SetPosition(track.sampledPoints[i] + right * halfWidth);
-            tr.SetOrientation(glm::quatLookAt(forward, up));
-
-            registry.AddComponents<MeshComponent, TransformComponent, MaterialComponent, CollisionComp>(
-                wall, std::move(mesh), std::move(tr), std::move(text), std::move(collider));
-        }
+        Material material;
+        material.baseColor = &TextureLoader::Load(texturePath, window.App());
+        mat.materials[i] = material;
     }
+
+    registry.AddComponent<MaterialComponent>(e, std::move(mat));
+
+    bool isSol = path.find("sol") != std::string::npos;
+    bool isParking = path.find("place_de_parking") != std::string::npos;
+	bool isRondPoint = path.find("round_about.obj") != std::string::npos;
+	bool isFleche = path.find("fleches") != std::string::npos;
+	bool isFilsPoteaux = path.find("fils_poteaux") != std::string::npos;
+	bool isPoteaux = path.find("poteaux") != std::string::npos;
+
+    if (!isSol && !isParking && !isRondPoint && !isFleche && !isFilsPoteaux && !isPoteaux)
+    {
+        CollisionComp col;
+        col.collider = &ColliderManager::Load(path, m.mesh);
+
+        registry.AddComponent<CollisionComp>(e, std::move(col));
+    }
+
+    return e;
 }
 
-void Track::CreateTrack(ecsType& registry, KGR::RenderWindow& window)
+void Track::CreateMap(ecsType& registry, KGR::RenderWindow& window)
 {
-    std::vector<glm::vec3> points{
-    { -5,0,5 }, { 10,0,-20 }, { 20,0,-10 }, { 35,0,-15 },
-    { 50,0,-25 }, { 60,0,-20 }, { 70,0,-25 }, { 85,0,-35 },
-    { 90,0,-50 }, { 70,0,-70 }, { 55,0,-60 }, { 40,0,-50 },
-    { 25,0,-60 }, { 20,0,-75 }, { 10,0,-90 }, { 0,0,-100 },
-    { -5,0,-105 }
-    };
+    CreateStaticMesh(registry, window, "Models/Map/sol.obj", "Textures/Map/texture_sol.jpg");
+    CreateStaticMesh(registry, window, "Models/Map/trottoir.obj", "Textures/Map/trottoir_texture.jpg");
+    CreateStaticMesh(registry, window, "Models/Map/place_de_parking.obj", "Textures/Map/parkings.png");
+    CreateStaticMesh(registry, window, "Models/Map/round_about.obj", "Textures/Map/rond_point_texture.png");
+    CreateStaticMesh(registry, window, "Models/Map/fleches.obj", "Textures/Map/fleche_1_texture.png");
+	CreateStaticMesh(registry, window, "Models/Map/fils_poteaux.obj", "Textures/Map/trim_sheet.png");
+	CreateStaticMesh(registry, window, "Models/Map/poteaux.obj", "Textures/Map/trim_sheet.png");
 
-    KGR::ECS::Entity::_64 trackEntity;
+    /*ALL BARRELS*/
+    for (size_t i = 1; i <= 63; ++i)
     {
-        trackEntity = registry.CreateEntity();
-        TrackComponent track;
+        if(i == 24 || i == 25)
+			continue;
+        if (i >= 46 && i <= 50)
+			continue;
+        if (i >= 53 && i <= 55)
+            continue;
 
-        track.curve = HermitCurve::FromPoints(points, 0);
-        track.step = 0.1f;
+        CreateStaticMesh(registry, window, std::format("Models/Map/Barrels/Cylinder_{:03d}.obj", i), "Textures/Map/trim_sheet.png");
+	}
 
-        float maxT = track.curve.MaxT();
-        int sampleCount = static_cast<int>(maxT / track.step) + 1;
+    //ALL BARRERS
+    for (size_t i = 1; i <= 146; ++i)
+    {
+        if (i == 2 || i == 4 || i == 12 || i == 45)
+            continue;
+        if (i >= 52 && i <= 54)
+            continue;
+        if (i >= 94 && i <= 95)
+            continue;
 
-        track.sampledPoints.reserve(sampleCount);
-        for (int i = 0; i < sampleCount; ++i)
-            track.sampledPoints.push_back(track.curve.Compute(i * track.step));
-
-        track.forwardDirs = KGR::RMF::EstimateForwardDirs(track.sampledPoints);
-        track.frames = KGR::RMF::BuildFrames(track.sampledPoints, track.forwardDirs);
-
-        registry.AddComponents<TrackComponent>(trackEntity, std::move(track));
+        CreateStaticMesh(registry, window, std::format("Models/Map/Barrers/barriere55_{:03d}.obj", i), "Textures/Map/trim_sheet.png");
     }
-
-    auto& track = registry.GetComponent<TrackComponent>(trackEntity);
-    Track MyTrack;
-    MyTrack.SpawnRoadPieces(registry, window, track);
 }

@@ -26,7 +26,7 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 
 	//Transform
 	TransformComponent carTransform;
-	carTransform.SetPosition({ 0, 0.2f, 0 });
+	carTransform.SetPosition({ 30, 0.31, 10 });
 	carTransform.SetRotation({ 0, glm::radians(180.0f), 0 });
 	
 	////Texture
@@ -47,7 +47,7 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 	for (int i = 0; i < mesh.mesh->GetSubMeshesCount(); ++i)
 	{
 		Material mat;
-		mat.baseColor = &TextureLoader::Load("Textures/Car/Car_Base_Color.png", window.App());
+		mat.baseColor = &TextureLoader::Load("Textures/Car/texture_voiture.png", window.App());
 		//mat.emissive = &TextureLoader::Load("Textures/bloc_BaseColor_Emissive.png", window.App());
 		//mat.normalMap = &TextureLoader::Load("Textures/bloc_Normal.png", window.App());
 		mat.pbrMap = &TextureLoader::Load("Textures/Car/celica_body_Material_ORM.png", window.App());
@@ -58,9 +58,8 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 	CollisionComp collider;
 	collider.collider = new Collider();
 
-	//TODO TOFIX collider is very dirty, might take the vertices model to make the collider
-	collider.collider->localBox.m_min = glm::vec3(-0.905f, -0.505f, -2.215f);
-	collider.collider->localBox.m_max = glm::vec3(0.905f, 0.505f, 2.215f);
+	collider.collider->localBox.m_min = glm::vec3(-0.905f / 2, -0.505f / 2, -2.215f / 2);
+	collider.collider->localBox.m_max = glm::vec3( 0.905f / 2,  0.505f / 2, 2.215f / 2);
 
 
 	CarPhysicsComponent carPhysic;
@@ -94,7 +93,7 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 			for (int i = 0; i < mesh.mesh->GetSubMeshesCount(); ++i)
 			{
 				Material mat;
-				mat.baseColor = &TextureLoader::Load("Textures/Car/texture voiture.png", window.App());
+				mat.baseColor = &TextureLoader::Load("Textures/Car/texture_voiture.png", window.App());
 				//mat.emissive = &TextureLoader::Load("Textures/bloc_BaseColor_Emissive.png", window.App());
 				//mat.normalMap = &TextureLoader::Load("Textures/bloc_Normal.png", window.App());
 				//mat.pbrMap = &TextureLoader::Load("Textures/bloc_ORM.png", window.App());
