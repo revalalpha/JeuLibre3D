@@ -19,8 +19,7 @@ void ScoreManager::Run(float driftFactor, float speed, float dt)
 		AddScore(points);
 		time += dt;
 		ComputeMult(dt);
-		if (m_score > m_highScore)
-			m_highScore = m_score;
+		SetHighScore();
 		cancelTimer = 3.f;
 	}
 	else

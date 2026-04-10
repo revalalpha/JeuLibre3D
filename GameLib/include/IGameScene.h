@@ -31,28 +31,40 @@ struct ChangeSceneEvent
 {
 	std::string targetScene;
 };
+struct ExitEvent
+{
+	
+};
 
 struct GameSceneManager : public SceneManager
 {
 	GameSceneManager(const std::filesystem::path& path)
 	{
 		KGR::RenderWindow::Init();
-		m_window = std::make_unique<KGR::RenderWindow>(glm::vec2{ 1920,800 }, "My_Super_Mega_Duper_Projet_De_La_Mort_Qui_Tue_!!", path);
+		m_window = std::make_unique<KGR::RenderWindow>(glm::vec2{ 1920,800 }, "Turbo Drift", path);
 		KGR::Audio::WavComponent::Init();
-		//KGR::Audio::WavStreamComponent::Init();
 		KGR::EventBus<ChangeSceneEvent>::AddListener(this);
 		KGR::EventBus<ChangeSceneEvent>::AddCallBack<GameSceneManager>(&GameSceneManager::ChangeScene);
+		KGR::EventBus<ExitEvent>::AddListener(this);
+		KGR::EventBus<ExitEvent>::AddCallBack<GameSceneManager>(&GameSceneManager::Close);
 	}
 	~GameSceneManager() override
 	{
 		KGR::EventBus<ChangeSceneEvent>::RemoveListener(this);
+		KGR::EventBus<ExitEvent>::RemoveListener(this);
 	}
 	KGR::RenderWindow* GetWindow() const 
 	{
 		return m_window.get();
 	}
+	void Close(const ExitEvent&)
+	{
+		IsOpen = false;
+	}
 	bool LoopCondition() const override
 	{
+		if (!IsOpen)
+			return false;
 		return !m_window->ShouldClose();
 	}
 	void Destroy() override
@@ -67,6 +79,7 @@ struct GameSceneManager : public SceneManager
 	}
 private:
 	std::unique_ptr<KGR::RenderWindow> m_window;
+	bool IsOpen = true;
 };
 
 struct IGameScene : public Scene
@@ -161,202 +174,9 @@ struct GameScene : public IGameScene
 	
 	GameScene(const KGR::Tools::Chrono<float>::Time& time) :IGameScene(time){}
 	void Init(SceneManager* manager) override;
-	//{
-	//	
-
-	//	IGameScene::Init(manager);
-	//	// camera 
-	//	{
-	//		// a calera need a cameraComponent that can be orthographic or perspective and a transform
-
-	//		// create the camera with the fov , the size of the window (must be updated ) and the far and near rendering and the mode 
-	//		CameraComponent cam = CameraComponent::Create(glm::radians(45.0f), m_window->GetSize().x, m_window->GetSize().y, 0.01f, 100000.0f, CameraComponent::Type::Perspective);
-	//		TransformComponent transform;
-	//		// create a transform and set pos and dir 
-	//		transform.SetPosition({ 0,3,5 });
-	//		transform.LookAt({ 0,0,0 });
-	//		// now create an entity , an alias here std::uint64_t
-	//		auto e = m_ecs.CreateEntity();
-
-	//		// now move the component into the ecs
-	//		m_ecs.AddComponents(e, std::move(cam), std::move(transform));
-	//	}
-
-
-	//	
-	//	
-	//	
-	//	{
-	//		// a mesh need a meshComponent a transform and a texture 
-
-	//		// create a mesh and load it with the cash loader
-	//		MeshComponent mesh;
-	//		mesh.mesh = &MeshLoader::Load("Models/CUBE.obj", m_window->App());
-
-	//		// create a texture 
-	//		MaterialComponent text;
-	//		// allocate the size of the texture must be the same as the number of submeshes 
-	//		text.materials.resize(mesh.mesh->GetSubMeshesCount());
-	//		// then fill the texture ( this system need to be refact but for now you need to do it like that
-	//		for (int i = 0; i < mesh.mesh->GetSubMeshesCount(); ++i)
-	//		{
-	//			Material mat;
-	//			mat.baseColor = &TextureLoader::Load("Textures/bloc_BaseColor_Emissive.png", m_window->App());
-	//			//mat.emissive = &TextureLoader::Load("Textures/bloc_BaseColor_Emissive.png", m_window->App());
-	//			//mat.normalMap = &TextureLoader::Load("Textures/bloc_Normal.png", m_window->App());
-	//			//mat.pbrMap = &TextureLoader::Load("Textures/bloc_ORM.png", m_window->App());
-
-
-
-
-
-	//			text.materials[i] = mat;
-	//		}
-
-	//		// create the transform and set all the data
-	//		TransformComponent transform;
-	//		transform.SetPosition({ 0,0,0 });
-	//		transform.SetScale({ 3.0f, 3.0f,3.0f });
-	//		// same create an entity / id
-	//		auto e = m_ecs.CreateEntity();
-	//		// fill the component
-	//		m_ecs.AddComponents(e, std::move(mesh), std::move(text), std::move(transform));
-	//	}
-
-
-	//	{
-	//		// a mesh need a meshComponent a transform and a texture 
-
-	//		// create a mesh and load it with the cash loader
-	//		MeshComponent mesh;
-	//		mesh.mesh = &MeshLoader::Load("Models/celica.obj", m_window->App());
-
-	//		// create a texture 
-	//		MaterialComponent text;
-	//		// allocate the size of the texture must be the same as the number of submeshes 
-	//		text.materials.resize(mesh.mesh->GetSubMeshesCount());
-	//		// then fill the texture ( this system need to be refact but for now you need to do it like that
-	//		for (int i = 0; i < mesh.mesh->GetSubMeshesCount(); ++i)
-	//		{
-	//			Material mat;
-	//			mat.baseColor = &TextureLoader::Load("Textures/bloc_BaseColor_Emissive.png", m_window->App());
-	//			mat.emissive = &TextureLoader::Load("Textures/bloc_BaseColor_Emissive.png", m_window->App());
-	//			mat.normalMap = &TextureLoader::Load("Textures/bloc_Normal.png", m_window->App());
-	//			mat.pbrMap = &TextureLoader::Load("Textures/bloc_ORM.png", m_window->App());
-
-
-
-
-
-	//			text.materials[i] = mat;
-	//		}
-
-	//		// create the transform and set all the data
-	//		TransformComponent transform;
-	//		transform.SetPosition({ 0,0,0 });
-	//		transform.SetScale({ 3.0f, 3.0f,3.0f });
-	//		// same create an entity / id
-	//		auto e = m_ecs.CreateEntity();
-	//		// fill the component
-	//		m_ecs.AddComponents(e, std::move(mesh), std::move(text), std::move(transform), std::move(control{}));
-	//	}
-
-
-
-	//	// light
-	//	{
-	//		// the light need transform component and light component
-	//		// all lights type have their own system to create them go in the file to understand
-	//		LightComponent<LightData::Type::Directional> lc = LightComponent<LightData::Type::Directional>::Create({ 1, 1,1 }, { 1,1,1 }, 10.0f);
-	//		// set the transform but certain light need dir some position or both so just use what necessary 
-	//		TransformComponent transform;
-	//		transform.SetPosition({ 0,0,0 });
-	//		transform.LookAtDir({ 0,-1,0 });
-	//		// same 
-	//		auto e = m_ecs.CreateEntity();
-	//		// same
-	//		m_ecs.AddComponents(e, std::move(lc), std::move(transform));
-	//	}
-
-	//	// ui ( not fully operational)
-	//	{
-	//		// you need texture transform and ui component
-	//		// for the transform it only use for the rotation 
-	//		TransformComponent2d transform;
-	//		// here you can set a rotation ( ROTATION FROM THE CENTER OF THE MESH )
-	//		//transform.SetRotation(glm::radians(-45.0f));
-	//		// create your ui with a virtual resolution and an anchor default center
-	//		UiComponent ui({ 1920,1080 }, UiComponent::Anchor::LeftTop);
-	//		// here set the position in the virtual resolution
-	//		ui.SetPos({ 0, 0 });
-	//		// here the scale
-	//		ui.SetScale({ 200,200 });
-	//		// create a texture but be aware that only the first texture in the component will be use 
-	//		TextureComponent texture;
-	//		texture.texture = &TextureLoader::Load("Textures/texture.jpg", m_window->App());
-
-	//		// same as always 
-	//		auto e = m_ecs.CreateEntity();
-	//		m_ecs.AddComponents(e, std::move(transform), std::move(ui), std::move(texture), std::move(CollisionComp2d{}));
-
-	//	}
-	//}
+	
 	void Update(float dt) override;
-	//{
-	//	IGameScene::Update(dt);
-
-	//	{
-	//		auto es = m_ecs.GetAllComponentsView<MeshComponent, TransformComponent, control>();
-	//		for (auto& e : es)
-	//		{
-	//			auto input = m_window->GetInputManager();
-
-	//			static float speed = 25.0f;
-	//			if (input->IsKeyDown(KGR::Key::Q))
-	//				m_ecs.GetComponent<TransformComponent>(e).RotateQuat<RotData::Orientation::Yaw>(glm::radians(speed * dt));
-	//			if (input->IsKeyDown(KGR::Key::D))
-	//				m_ecs.GetComponent<TransformComponent>(e).RotateQuat<RotData::Orientation::Yaw>(glm::radians(-speed * dt));
-
-	//			if (input->IsKeyDown(KGR::Key::Z))
-	//				m_ecs.GetComponent<TransformComponent>(e).RotateQuat<RotData::Orientation::Pitch>(glm::radians(-speed * dt));
-	//			if (input->IsKeyDown(KGR::Key::S))
-	//				m_ecs.GetComponent<TransformComponent>(e).RotateQuat<RotData::Orientation::Pitch>(glm::radians(speed * dt));
-
-
-
-	//			if (input->IsKeyDown(KGR::Key::A))
-	//				m_ecs.GetComponent<TransformComponent>(e).RotateQuat<RotData::Orientation::Roll>(glm::radians(-speed * dt));
-	//			if (input->IsKeyDown(KGR::Key::E))
-	//				m_ecs.GetComponent<TransformComponent>(e).RotateQuat<RotData::Orientation::Roll>(glm::radians(speed * dt));
-	//		}
-
-	//	}
-	//	{
-	//		auto input = m_window->GetInputManager();
-	//		if (input->IsKeyDown(KGR::Key::P))
-	//			KGR::EventBus<ChangeSceneEvent>::Notify(ChangeSceneEvent{"Menu"});
-	//	}
-	//	{
-
-	//		auto mousePos = m_window->GetInputManager()->GetMousePosition();
-	//		float aspectRatio = static_cast<float>(m_window->GetSize().x) / static_cast<float>(m_window->GetSize().y);
-	//		auto mouseinAR = UiComponent::VrToNdc(mousePos, m_window->GetSize(), aspectRatio, false);
-
-	//		auto es = m_ecs.GetAllComponentsView<CollisionComp2d, UiComponent>();
-	//		for (auto e : es)
-	//		{
-	//			auto& t = m_ecs.GetComponent<CollisionComp2d>(e);
-	//			auto& u = m_ecs.GetComponent<UiComponent>(e);
-	//			t.Update(u.GetPosNdc(aspectRatio), u.GetScaleNdc(aspectRatio));
-
-	//			if (t.aabb.IsColliding(mouseinAR))
-	//				u.SetColor({ 1,0,0,1 });
-	//			else
-	//				u.SetColor({ 0,1,0,1 });
-	//		}
-	//	}
-
-	//}
+	
 	void Render() override
 	{
 		
@@ -367,6 +187,9 @@ struct GameScene : public IGameScene
 struct CSComp
 {
 	std::string targetScene;
+};
+struct ExitComp
+{
 };
 
 struct MenuScene : public IGameScene
@@ -404,23 +227,60 @@ struct MenuScene : public IGameScene
 			// here set the position in the virtual resolution
 			ui.SetPos({ 1920.0f/2.0f, 1080.0f/2.0f });
 			// here the scale
-			ui.SetScale({ 1000,500 });
+			ui.SetScale({ 800,1100 });
 			// create a texture but be aware that only the first texture in the component will be use 
 			TextureComponent texture;
-			texture.texture = &TextureLoader::Load("Textures/texture.jpg", m_window->App());
+			texture.texture = &TextureLoader::Load("Textures/Menu.png", m_window->App());
+			// same as always 
+			auto e = m_ecs.CreateEntity();
+
+			m_ecs.AddComponents(e, std::move(transform), std::move(ui), std::move(texture), std::move(CollisionComp2d{}));
+
+		}
+		{
+			// you need texture transform and ui component
+			// for the transform it only use for the rotation 
+			TransformComponent2d transform;
+			// here you can set a rotation ( ROTATION FROM THE CENTER OF THE MESH )
+			//transform.SetRotation(glm::radians(-45.0f));
+			// create your ui with a virtual resolution and an anchor default center
+			UiComponent ui({ 1920,1080 }, UiComponent::Anchor::Center);
+			// here set the position in the virtual resolution
+			ui.SetPos({ 1920.0f / 2.0f, 1080.0f / 2.0f });
+			// here the scale
+			ui.SetScale({ 400,200 });
+			// create a texture but be aware that only the first texture in the component will be use 
+			TextureComponent texture;
+			texture.texture = &TextureLoader::Load("Textures/jouer_violet.png", m_window->App());
 			CSComp comp;
 			comp.targetScene = "Game";
 			// same as always 
 			auto e = m_ecs.CreateEntity();
-			TextComp text;
-			text.text.font = &FontLoader::Load("Fonts/Roasthink.ttf", m_window->App(),30.f);
-			text.text.SetText( "Mult x");
-			text.text.textTexture = &TextureLoader::Load("Textures/font.png", m_window->App());
-			text.text.SetAlign(Text::Align::Center);
 
+			m_ecs.AddComponents(e, std::move(transform), std::move(ui), std::move(texture), std::move(CollisionComp2d{}), std::move(comp));
 
+		}
+		{
+			// you need texture transform and ui component
+			// for the transform it only use for the rotation 
+			TransformComponent2d transform;
+			// here you can set a rotation ( ROTATION FROM THE CENTER OF THE MESH )
+			//transform.SetRotation(glm::radians(-45.0f));
+			// create your ui with a virtual resolution and an anchor default center
+			UiComponent ui({ 1920,1080 }, UiComponent::Anchor::Center);
+			// here set the position in the virtual resolution
+			ui.SetPos({ 1920.0f / 2.0f, 1080.0f / 2.0f + 300.f});
+			// here the scale
+			ui.SetScale({ 400,200 });
+			// create a texture but be aware that only the first texture in the component will be use 
+			TextureComponent texture;
+			texture.texture = &TextureLoader::Load("Textures/quitter_violet.png", m_window->App());
+			ExitComp comp;
+			
+			// same as always 
+			auto e = m_ecs.CreateEntity();
 
-			m_ecs.AddComponents(e, std::move(transform), std::move(ui), std::move(texture), std::move(CollisionComp2d{}),std::move(comp),std::move(text));
+			m_ecs.AddComponents(e, std::move(transform), std::move(ui), std::move(texture), std::move(CollisionComp2d{}), std::move(comp));
 
 		}
 	}
@@ -435,7 +295,23 @@ struct MenuScene : public IGameScene
 			float aspectRatio = static_cast<float>(m_window->GetSize().x) / static_cast<float>(m_window->GetSize().y);
 			auto mouseinAR = UiComponent::VrToNdc(mousePos, m_window->GetSize(), aspectRatio, false);
 
-			auto es = m_ecs.GetAllComponentsView<CollisionComp2d, UiComponent,CSComp>();
+			auto play = m_ecs.GetAllComponentsView<CollisionComp2d, UiComponent,CSComp>();
+			for (auto p : play)
+			{
+				auto& t = m_ecs.GetComponent<CollisionComp2d>(p);
+				auto& u = m_ecs.GetComponent<UiComponent>(p);
+				t.Update(u.GetPosNdc(aspectRatio), u.GetScaleNdc(aspectRatio));
+
+				if (t.aabb.IsColliding(mouseinAR))
+				{
+					u.SetColor({ 1.f,1.f,1.f,1 });
+					if (m_window->GetInputManager()->IsMousePressed(KGR::Mouse::Left))
+						KGR::EventBus<ChangeSceneEvent>::Notify(ChangeSceneEvent{m_ecs.GetComponent<CSComp>(p).targetScene});
+				}
+				else
+					u.SetColor({ 0.5f,0.5f,0.5f,1 });
+			}
+			auto es = m_ecs.GetAllComponentsView<CollisionComp2d, UiComponent, ExitComp>();
 			for (auto e : es)
 			{
 				auto& t = m_ecs.GetComponent<CollisionComp2d>(e);
@@ -444,13 +320,14 @@ struct MenuScene : public IGameScene
 
 				if (t.aabb.IsColliding(mouseinAR))
 				{
-					//u.SetColor({ 1,0,0,1 });
+					u.SetColor({ 1.f,1.f,1.f,1 });
 					if (m_window->GetInputManager()->IsMousePressed(KGR::Mouse::Left))
-						KGR::EventBus<ChangeSceneEvent>::Notify(ChangeSceneEvent{m_ecs.GetComponent<CSComp>(e).targetScene});
+						KGR::EventBus<ExitEvent>::Notify(ExitEvent{});
 				}
-				/*else
-					u.SetColor({ 0,1,0,1 });*/
+				else
+					u.SetColor({ 0.5f,0.5f,0.5f,1 });
 			}
+			
 		}
 	}
 };

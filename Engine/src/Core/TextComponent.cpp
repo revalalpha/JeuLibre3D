@@ -5,12 +5,20 @@
 void Text::SetText(const std::string& text)
 {
 	m_message.data = text;
+	for (auto d : dirty)
+	{
+		d = true;
+	}
 	m_message.isDirty = true;
 }
 
 void Text::SetAlign(const Align& align)
 {
 	m_align = align;
+	for (auto d : dirty)
+	{
+		d = true;
+	}
 	m_message.isDirty = true;
 }
 
@@ -24,10 +32,10 @@ Text::Align Text::GetAlign() const
 	return m_align;
 }
 
-void Text::Bind(const vk::raii::CommandBuffer* buffer)
+void Text::Bind(const vk::raii::CommandBuffer* buffer, int frameId)
 {
-	buffer->bindVertexBuffers(0, *m_vertexBuffer.Get(), { 0 });
-	buffer->bindIndexBuffer(*m_indexBuffer.Get(), 0, vk::IndexType::eUint32);
+	buffer->bindVertexBuffers(0, *m_buffers[frameId].m_vertexBuffer.Get(), { 0 });
+	buffer->bindIndexBuffer(*m_buffers[frameId].m_indexBuffer.Get(), 0, vk::IndexType::eUint32);
 }
 
 float Text::Offset(const Align& align, float totalAdvance, float currentAdvance)
@@ -37,28 +45,34 @@ float Text::Offset(const Align& align, float totalAdvance, float currentAdvance)
 	case  Align::Left:
 		return 0.0f;
 	case Align::Center:
-		return (totalAdvance - currentAdvance) / 2.0f ;
+		return (totalAdvance - currentAdvance) / 2.0f;
 	case Align::Right:
-		return (totalAdvance - currentAdvance) ;
-	 default:
+		return (totalAdvance - currentAdvance);
+	default:
 		throw std::out_of_range("case not handle");
 	}
 }
 
-void Text::Upload(KGR::_Vulkan::VulkanCore* core)
+void Text::Upload(KGR::_Vulkan::VulkanCore* core, int frameId)
 {
-	if (!m_message.isDirty)
+
+	if (m_buffers.size() > frameId && !dirty[frameId])
 		return;
 
 
 	// if the message is dirty clear the buffer and let's calculate
-	m_message.isDirty = false;
-	if (m_vertexBuffer.GetSize() != 0)
+	if (m_buffers.size() <= frameId)
 	{
-		m_vertexBuffer.Get().clear();
-		m_indexBuffer.Get().clear();
+		m_buffers.resize(frameId + 1);
+		dirty.resize(frameId + 1, true);
+
 	}
-	
+	else if (m_buffers[frameId].m_vertexBuffer.GetSize() != 0)
+	{
+		m_buffers[frameId].m_vertexBuffer.Get().clear();
+		m_buffers[frameId].m_indexBuffer.Get().clear();
+	}
+	dirty[frameId] = false;
 
 	// create the temp vector for vertices and index
 	std::vector<Vertex2D> vertices;
@@ -69,19 +83,19 @@ void Text::Upload(KGR::_Vulkan::VulkanCore* core)
 	// and push a first string in it
 	splitMessage.emplace_back();
 	// for all letter 
-	for (auto& m :m_message.data)
+	for (auto& m : m_message.data)
 	{
 		// if it's not a \n just add the char to the last string
 		if (m != '\n')
 			splitMessage.back().push_back(m);
 		// else add a new string to the vector
-		else 
+		else
 			splitMessage.emplace_back();
 	}
 	// calculate here the advance total of the text base on pixel size
 	float totalAdvance = 0.0f;
 	std::vector<float> advances;
-	for (auto& str: splitMessage)
+	for (auto& str : splitMessage)
 	{
 		// create the local one 
 		advances.emplace_back(0.0f);
@@ -128,16 +142,16 @@ void Text::Upload(KGR::_Vulkan::VulkanCore* core)
 			float offset = Text::Offset(m_align, totalAdvance, advances[row]);
 			float minX = startX + glyph.offset.x * scaleX + offset * scaleX;
 			// same for y remind that y is negative and descent is how much letters go below the baseline
-		    // we subtract it to keep line consistency while making sure the text stays inside the quad
+			// we subtract it to keep line consistency while making sure the text stays inside the quad
 			float minY = startY + glyph.offset.y * scaleY - font->GetDescent() * scaleY;
 			// calculate the end x base on the size 
 			float maxX = minX + glyph.size.x * scaleX;
 			// same for y
 			float maxY = minY + glyph.size.y * scaleY;
 
-			
+
 			// add the vertices 
-			vertices.push_back({ {minX, minY},     {glyph.min.x, glyph.min.y} ,{minX + 0.5f, minY + 0.5f}});
+			vertices.push_back({ {minX, minY},     {glyph.min.x, glyph.min.y} ,{minX + 0.5f, minY + 0.5f} });
 			vertices.push_back({ {maxX, minY},     {glyph.max.x, glyph.min.y},{maxX + 0.5f, minY + 0.5f} });
 			vertices.push_back({ {maxX, maxY}, {glyph.max.x, glyph.max.y} ,{maxX + 0.5f, maxY + 0.5f} });
 			vertices.push_back({ {minX, maxY}, {glyph.min.x, glyph.max.y} ,{minX + 0.5f, maxY + 0.5f} });
@@ -159,12 +173,12 @@ void Text::Upload(KGR::_Vulkan::VulkanCore* core)
 		startY += lineOffset;
 	}
 	// create the buffer and set the size for draw 
-	m_vertexBuffer = core->CreateVertexBuffer(vertices);
-	m_indexBuffer = core->CreateIndexBuffer(indices);
+	m_buffers[frameId].m_vertexBuffer = core->CreateVertexBuffer(vertices);
+	m_buffers[frameId].m_indexBuffer = core->CreateIndexBuffer(indices);
 	m_size = indices.size();
 }
 
-size_t Text::GetIndexSize() const 
+size_t Text::GetIndexSize() const
 {
 	return m_size;
 }
