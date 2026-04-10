@@ -6,6 +6,7 @@
 #include "Core/Window.h"
 #include "Math/Collision.h"
 #include "Math/CollisionComponent.h"
+#include <iostream>
 
 KGR::ECS::Entity::_64 Track::CreateStaticMesh(
     ecsType& registry,
@@ -38,12 +39,12 @@ KGR::ECS::Entity::_64 Track::CreateStaticMesh(
 
     registry.AddComponent<MaterialComponent>(e, std::move(mat));
 
-    bool isSol = path.find("sol") != std::string::npos;
-    bool isParking = path.find("place_de_parking") != std::string::npos;
+    bool isSol = path.find("Models/Map/sol.obj") != std::string::npos;
+    bool isParking = path.find("Models/Map/place_de_parking.obj") != std::string::npos;
 	bool isRondPoint = path.find("round_about.obj") != std::string::npos;
-	bool isFleche = path.find("fleches") != std::string::npos;
-	bool isFilsPoteaux = path.find("fils_poteaux") != std::string::npos;
-	bool isPoteaux = path.find("poteaux") != std::string::npos;
+	bool isFleche = path.find("fleches.obj") != std::string::npos;
+	bool isFilsPoteaux = path.find("fils_poteaux.obj") != std::string::npos;
+	bool isPoteaux = path.find("poteaux.obj") != std::string::npos;
 
     if (!isSol && !isParking && !isRondPoint && !isFleche && !isFilsPoteaux && !isPoteaux)
     {

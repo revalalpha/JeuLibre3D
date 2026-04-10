@@ -15,7 +15,6 @@ void ScoreManager::Run(float driftFactor, float speed, float dt)
 	if (factor > 4.8f && speed > 1.f)
 	{
 		points += (( factor * m_driftScoreRate * std::max(1.f,(speed / 4.f)) * dt )/15.f)*m_multiplier;
-		std::cout << points << std::endl;
 		AddScore(points);
 		time += dt;
 		ComputeMult(dt);
