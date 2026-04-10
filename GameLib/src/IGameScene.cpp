@@ -9,7 +9,7 @@
 #include "GameSystems/WheelSystem.h"
 #include "GameSystems/DriftSystem.h"
 #include "GameSystems/CarCollisionSystem.h"
-
+#include"GameSystems/ScoreSystem.h"
 
 GameAudio gameAudio;
 
@@ -22,12 +22,19 @@ void GameScene::Init(SceneManager* manager)
 	Player player;
 	player.CreatePlayer(m_ecs, *m_window);
 
+	
+
 	//Audio
 	gameAudio.Create(m_ecs);
 
 	//Track
 	Track track;
 	track.CreateTrack(m_ecs, *m_window);
+
+
+	ScoreSystem score;
+	score.createScore(m_ecs, *m_window);
+
 
 	KGR::Tools::Random rd;
 	auto yScale = rd.getRandomNumberRange(5.0f, 100.0f, 8);
@@ -79,6 +86,10 @@ void GameScene::Update(float dt)
 	//Drift
 	DriftSystem driftSystem;
 	driftSystem.Update(m_ecs, dt);
+
+	//Score
+	ScoreSystem score;
+	score.Update(m_ecs, dt, *m_window);
 
 	static bool debugCollision = false;
 

@@ -413,9 +413,9 @@ struct MenuScene : public IGameScene
 			// same as always 
 			auto e = m_ecs.CreateEntity();
 			TextComp text;
-			//text.text.font = &FontLoader::Load("Fonts/arial.ttf", m_window->App());
-			text.text.SetText( "je pense donc je suis !\nje mange des arbres ");
-			text.text.textTexture = &TextureLoader::Load("Textures/viking_room.png", m_window->App());
+			text.text.font = &FontLoader::Load("Fonts/Roasthink.ttf", m_window->App(),30.f);
+			text.text.SetText( "Mult x");
+			text.text.textTexture = &TextureLoader::Load("Textures/font.png", m_window->App());
 			text.text.SetAlign(Text::Align::Center);
 
 
@@ -444,12 +444,12 @@ struct MenuScene : public IGameScene
 
 				if (t.aabb.IsColliding(mouseinAR))
 				{
-					u.SetColor({ 1,0,0,1 });
+					//u.SetColor({ 1,0,0,1 });
 					if (m_window->GetInputManager()->IsMousePressed(KGR::Mouse::Left))
 						KGR::EventBus<ChangeSceneEvent>::Notify(ChangeSceneEvent{m_ecs.GetComponent<CSComp>(e).targetScene});
 				}
-				else
-					u.SetColor({ 0,1,0,1 });
+				/*else
+					u.SetColor({ 0,1,0,1 });*/
 			}
 		}
 	}
