@@ -59,11 +59,11 @@ void CarAudioSystem::Update(ecsType& registry, float deltaTime, KGR::RenderWindo
 
             layer.sound.SetVolume(vol);
 
-            if(glm::abs(pitch - audio.lastPitch) > kPitchThreshold)
+            if (glm::abs(pitch - audio.lastPitch) > kPitchThreshold)
             {
-                layer.sound.SetPitch(glm::clamp(layer.smoothPitch, 0.1f, 2.0f)); 
+                layer.sound.SetPitch(glm::clamp(layer.smoothPitch, 0.1f, 2.0f));
                 audio.lastPitch = pitch;
-            }   
+            }
         }
 
         // --- Drift : glissement latéral ---
@@ -72,7 +72,7 @@ void CarAudioSystem::Update(ecsType& registry, float deltaTime, KGR::RenderWindo
         float lateralSlip = glm::abs(vLocal.x);
 
         float driftThreshold = 2.0f;
-        float driftVolume = glm::clamp((lateralSlip - driftThreshold) / 8.0f, 0.0f, 2.0f);
+        float driftVolume = glm::clamp((lateralSlip - driftThreshold) / 5.5f, 0.0f, 1.0f);
         float driftPitch = glm::mix(0.8f, 1.4f, driftVolume);
 
         if (driftVolume > 0.01f)
@@ -101,7 +101,7 @@ void CarAudioSystem::Update(ecsType& registry, float deltaTime, KGR::RenderWindo
             [](const KGR::Audio::WavComponent& s) {return s.IsPlaying();}
         );
 
-        if (isDecelerating && !wasDecelerating && isHighRPM &&!anyBackFiringPlaying)
+        if (isDecelerating && !wasDecelerating && isHighRPM && !anyBackFiringPlaying)
         {
             audio.backFireTimer = glm::mix(0.1f, 0.4f, static_cast<float>(std::rand()) / RAND_MAX);
             audio.pendinBackFireIndex = std::rand() % audio.backfireSounds.size();
@@ -134,7 +134,7 @@ void CarAudioSystem::Update(ecsType& registry, float deltaTime, KGR::RenderWindo
         {
             audio.radioActive = !audio.radioActive;
             audio.RadioSound.SetVolume(audio.radioActive ? audio.radioVolume : 0.0f);
-        }   
+        }
 
         if (audio.radioActive)
         {
@@ -147,7 +147,7 @@ void CarAudioSystem::Update(ecsType& registry, float deltaTime, KGR::RenderWindo
                 audio.RadioSound.SetVolume(audio.radioVolume);
             }
 
-            if (input->IsKeyDown(KGR::Key::P))
+            if (input->IsKeyDown(KGR::Key::I))
             {
                 audio.radioVolume = glm::clamp(
                     audio.radioVolume - audio.radioVolumeStep * deltaTime,

@@ -15,14 +15,14 @@ void DriftSystem::Update(ecsType& registry, float dt)
         auto& physic = registry.GetComponent<CarPhysicsComponent>(e);
         auto& transform = registry.GetComponent<TransformComponent>(e);
 
-		//Convert the velocity to local space
+        //Convert the velocity to local space
         glm::mat4 invRot = glm::inverse(transform.GetRotationMatrix());
         glm::vec3 vLocal = glm::vec3(invRot * glm::vec4(physic.velocity, 0.0f));
 
-		//Calculate the speed in the local XZ plane
+        //Calculate the speed in the local XZ plane
         float speed = glm::length(glm::vec2(vLocal.x, vLocal.z));
 
-		//Steer angle contribution
+        //Steer angle contribution
         float angle = 280.0f;
         float maxSteerAngle = glm::radians(angle);
         float steerSigned = 0.0f;
@@ -40,11 +40,11 @@ void DriftSystem::Update(ecsType& registry, float dt)
             }
         }
 
-		//Angle difference contribution
+        //Angle difference contribution
         float targetAngle = std::atan2(physic.velocity.x, physic.velocity.z);
         float currentAngle = transform.GetRotation().y;
-        
-		//Calculate the signed angle difference in the range
+
+        //Calculate the signed angle difference in the range
         float delta = std::atan2(std::sin(targetAngle - currentAngle),
             std::cos(targetAngle - currentAngle));
 
@@ -54,17 +54,17 @@ void DriftSystem::Update(ecsType& registry, float dt)
 
         float gripThreshold = 0.3f;
 
-        if(glm::abs(slipSigned) < gripThreshold)
+        if (glm::abs(slipSigned) < gripThreshold)
             slipSigned = 0.8f;
 
         float driftRaw = steerSigned * 0.3f + angleSigned * 0.5f + slipSigned * 0.8f;
 
         drift.driftFactor = glm::clamp(driftRaw, -1.0f, 1.0f);
 
-		//Apply drift boost to the car's velocity
+        //Apply drift boost to the car's velocity
         if (drift.driftFactor > 0)
             drift.driftFactor = glm::max(0.0f, drift.driftFactor - drift.driftDecay * dt);
         else
             drift.driftFactor = glm::min(0.0f, drift.driftFactor + drift.driftDecay * dt);
     }
-}
+}  

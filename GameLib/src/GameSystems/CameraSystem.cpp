@@ -56,29 +56,29 @@ void CameraSystem::Update(ecsType& registry, float deltaTime)
 		}
 
 		//Steering influence
-        float steerAngle = 0.0f;
-        auto wheels = registry.GetAllComponentsView<WheelComponent>();
-        for (auto w : wheels)
-        {
-            auto& wheel = registry.GetComponent<WheelComponent>(w);
-            if (wheel.isSteerable)
-                steerAngle = wheel.steerAngle;
-        }
+		float steerAngle = 0.0f;
+		auto wheels = registry.GetAllComponentsView<WheelComponent>();
+		for (auto w : wheels)
+		{
+			auto& wheel = registry.GetComponent<WheelComponent>(w);
+			if (wheel.isSteerable)
+				steerAngle = wheel.steerAngle;
+		}
 
 		follow.smoothedSteer = glm::mix(follow.smoothedSteer, steerAngle, deltaTime * follow.steerSmooth);
 
 		float angle = 30.0f;
-        float maxSteer = glm::radians(angle);
+		float maxSteer = glm::radians(angle);
 		float steerFactor = follow.smoothedSteer / maxSteer;
 
-        targetPos += right * steerFactor * follow.steerInfluence;
+		targetPos += right * steerFactor * follow.steerInfluence;
 
-        //Drift influence
-        if (registry.HasComponent<DriftComponent>(follow.target))
-        {
-            auto& drift = registry.GetComponent<DriftComponent>(follow.target);
-            targetPos += right * drift.driftFactor * follow.driftInfluence;
-        }
+		//Drift influence
+		if (registry.HasComponent<DriftComponent>(follow.target))
+		{
+			auto& drift = registry.GetComponent<DriftComponent>(follow.target);
+			targetPos += right * drift.driftFactor * follow.driftInfluence;
+		}
 
 		glm::vec3 targetPos = carPos - forward * targetDistance + glm::vec3(0, targetHeight, 0);
 
@@ -95,6 +95,7 @@ void CameraSystem::Update(ecsType& registry, float deltaTime)
 
 		//Calculate look direction and target rotation
 		float lookAhead = 1.0f;
+		float targetYawOffset = 0.0f;
 
 		if (registry.HasComponent<CarControllerComponent>(follow.target))
 		{

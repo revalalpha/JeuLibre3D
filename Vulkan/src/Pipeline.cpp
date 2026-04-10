@@ -9,6 +9,8 @@
 
 KGR::_Vulkan::Pipeline::Pipeline(const ShaderInfo& shaderInfo, Device* device, SwapChain* swapChain, DescriptorLayouts* layouts, PhysicalDevice* phDevice, vk::PolygonMode mode, const vk::VertexInputBindingDescription& vInput, const std::vector < vk::VertexInputAttributeDescription>& attributes)
 {
+
+	//
 	auto& file = FileManager::Load(shaderInfo.ShaderPath);
 	file.seekg(0, std::ios::end);
 	auto fileSize = file.tellg();
@@ -27,7 +29,7 @@ KGR::_Vulkan::Pipeline::Pipeline(const ShaderInfo& shaderInfo, Device* device, S
 	vk::PipelineShaderStageCreateInfo fragShaderStageInfo{ .stage = vk::ShaderStageFlagBits::eFragment, .module = shaderModule, .pName = shaderInfo.fragmentMain };
 	vk::PipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
 
-	auto                                     bindingDescription = vInput;
+	auto                                     bindingDescription =vInput;
 	auto                                     attributeDescriptions = attributes;
 	vk::PipelineVertexInputStateCreateInfo vertexInputInfo{
 			.vertexBindingDescriptionCount = 1,
@@ -115,7 +117,7 @@ KGR::_Vulkan::Pipeline::Pipeline(const ShaderInfo& shaderInfo, Device* device, S
 
 KGR::_Vulkan::Pipeline KGR::_Vulkan::Pipeline::CreateUiPipeline(const ShaderInfo& shaderInfo, Device* device,
 	SwapChain* swapChain, DescriptorLayouts* layouts, PhysicalDevice* phDevice,
-	const vk::VertexInputBindingDescription& vInput, const std::vector<vk::VertexInputAttributeDescription>& attributes)
+	const vk::VertexInputBindingDescription& vInput, const std::vector<vk::VertexInputAttributeDescription>& attributes, size_t pushConstantSize)
 {
 	Pipeline p;
 	//
@@ -195,7 +197,7 @@ KGR::_Vulkan::Pipeline KGR::_Vulkan::Pipeline::CreateUiPipeline(const ShaderInfo
 	vk::PushConstantRange pushRange{
 	vk::ShaderStageFlagBits::eVertex,
 	0,
-	sizeof(UiData::UiValidData)
+	static_cast<unsigned int>(pushConstantSize)
 	};
 
 	vk::PipelineLayoutCreateInfo pipelineLayoutInfo{ .setLayoutCount = static_cast<uint32_t>(layouts->GetLayouts().size()),

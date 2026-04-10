@@ -58,4 +58,9 @@ void KGR::_Vulkan::CommandBuffers::ReleaseCommandBuffer(vkCommandBuffer& command
 		m_commandBuffers[*commandBuffer].isCpuFree = true;
 }
 
+void KGR::_Vulkan::CommandBuffers::Clear()
+{
+	m_commandBuffers.clear();
+}
+
 

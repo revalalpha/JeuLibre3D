@@ -21,38 +21,53 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 	auto player = registry.CreateEntity();
 
 	//Mesh
-	MeshComponent meshComp;
-	meshComp.mesh = &MeshLoader::Load("Models\\Car\\Body\\celica_body.obj", window.App());
+	MeshComponent mesh;
+	mesh.mesh = &MeshLoader::Load("Models/Car/Body/celica_body.obj", window.App());
 
 	//Transform
 	TransformComponent carTransform;
-	carTransform.SetPosition({ 0, 0.2f, 0 });
+	carTransform.SetPosition({ 30, 0.31, 10 });
 	carTransform.SetRotation({ 0, glm::radians(180.0f), 0 });
-
-	//Texture
-	TextureComponent texture;
-	texture.SetSize(meshComp.mesh->GetSubMeshesCount());
-	for (int i = 0; i < meshComp.mesh->GetSubMeshesCount(); ++i)
+	
+	////Texture
+	//TextureComponent texture;
+	//texture.SetSize(meshComp.mesh->GetSubMeshesCount());
+	//for (int i = 0; i < meshComp.mesh->GetSubMeshesCount(); ++i)
+	//{
+	//	texture.AddTexture(i, &TextureLoader::Load("Textures/Car/Car_Base_Color.png", window.App()));
+	//	//texture.AddTexture(i, &TextureLoader::Load("Textures/Car/Car_Metallic.png", window.App()));
+	//	//texture.AddTexture(i, &TextureLoader::Load("Textures/Car/Car_Roughness.png", window.App()));
+	//}
+	
+	// create a texture 
+	MaterialComponent text;
+	// allocate the size of the texture must be the same as the number of submeshes 
+	text.materials.resize(mesh.mesh->GetSubMeshesCount());
+	// then fill the texture ( this system need to be refact but for now you need to do it like that
+	for (int i = 0; i < mesh.mesh->GetSubMeshesCount(); ++i)
 	{
-		texture.AddTexture(i, &TextureLoader::Load("Textures/Car/Car_Base_Color.png", window.App()));
-		//texture.AddTexture(i, &TextureLoader::Load("Textures/Car/Car_Metallic.png", window.App()));
-		//texture.AddTexture(i, &TextureLoader::Load("Textures/Car/Car_Roughness.png", window.App()));
+		Material mat;
+		mat.baseColor = &TextureLoader::Load("Textures/Car/texture_voiture.png", window.App());
+		//mat.emissive = &TextureLoader::Load("Textures/bloc_BaseColor_Emissive.png", window.App());
+		//mat.normalMap = &TextureLoader::Load("Textures/bloc_Normal.png", window.App());
+		mat.pbrMap = &TextureLoader::Load("Textures/Car/celica_body_Material_ORM.png", window.App());
+		text.materials[i] = mat;
 	}
-		
+	
 
 	CollisionComp collider;
 	collider.collider = new Collider();
 
-	collider.collider->localBox.m_min = glm::vec3(-0.905f, -0.505f, -2.215f);
-	collider.collider->localBox.m_max = glm::vec3(0.905f, 0.505f, 2.215f);
+	collider.collider->localBox.m_min = glm::vec3(-0.905f / 2, -0.505f / 2, -2.215f / 2);
+	collider.collider->localBox.m_max = glm::vec3( 0.905f / 2,  0.505f / 2, 2.215f / 2);
 
 
 	CarPhysicsComponent carPhysic;
 	carPhysic.wheels.reserve(4);
 
-	registry.AddComponents<MeshComponent, TransformComponent, TextureComponent, ControllerComponent,
+	registry.AddComponents<MeshComponent, TransformComponent, MaterialComponent, ControllerComponent,
 		CarControllerComponent, DriftComponent, CarPhysicsComponent, PlayerComponent, CollisionComp>
-		(player, std::move(meshComp), std::move(carTransform), std::move(texture), ControllerComponent{},
+		(player, std::move(mesh), std::move(carTransform), std::move(text), ControllerComponent{},
 			CarControllerComponent{}, DriftComponent{}, std::move(carPhysic), PlayerComponent{}, std::move(collider));
 
 	auto createWheel = [&](const std::string& path, glm::vec3 offset, bool driven, bool steerable)
@@ -65,10 +80,25 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 			TransformComponent transform;
 			transform.SetPosition(offset);
 
-			TextureComponent texture;
-			texture.SetSize(mesh.mesh->GetSubMeshesCount());
+			//TextureComponent texture;
+			//texture.SetSize(mesh.mesh->GetSubMeshesCount());
+			//for (int i = 0; i < mesh.mesh->GetSubMeshesCount(); ++i)
+			//	texture.AddTexture(i, &TextureLoader::Load("Textures/Car/texture voiture.png", window.App()));
+
+			// create a texture 
+			MaterialComponent text;
+			// allocate the size of the texture must be the same as the number of submeshes 
+			text.materials.resize(mesh.mesh->GetSubMeshesCount());
+			// then fill the texture ( this system need to be refact but for now you need to do it like that
 			for (int i = 0; i < mesh.mesh->GetSubMeshesCount(); ++i)
-				texture.AddTexture(i, &TextureLoader::Load("Textures/Car/texture voiture.png", window.App()));
+			{
+				Material mat;
+				mat.baseColor = &TextureLoader::Load("Textures/Car/texture_voiture.png", window.App());
+				//mat.emissive = &TextureLoader::Load("Textures/bloc_BaseColor_Emissive.png", window.App());
+				//mat.normalMap = &TextureLoader::Load("Textures/bloc_Normal.png", window.App());
+				//mat.pbrMap = &TextureLoader::Load("Textures/bloc_ORM.png", window.App());
+				text.materials[i] = mat;
+			}
 
 			WheelComponent wheel;
 			wheel.isDriven = driven;
@@ -77,8 +107,8 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 			wheel.carBody = player;
 
 			registry.AddComponents<
-				MeshComponent, TransformComponent, TextureComponent, WheelComponent>
-				(w, std::move(mesh), std::move(transform), std::move(texture), std::move(wheel));
+				MeshComponent, TransformComponent, MaterialComponent, WheelComponent>
+				(w, std::move(mesh), std::move(transform), std::move(text), std::move(wheel));
 
 			return w;
 		};
@@ -86,7 +116,7 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 	//Create the four wheels with appropriate offsets and properties
 	auto frontLeft = createWheel("Models/Car/Left_FrontWheel.obj", { 0.4f, 0.0f, .65f }, false, true);
 	auto frontRight = createWheel("Models/Car/Right_FrontWheel.obj", { -0.4f, 0.0f, 0.65f }, false, true);
-	auto backWheels = createWheel("Models/Car/BackWheels.obj", { -0.029f, 0.0f, -.59f }, true, false);
+	auto backWheels = createWheel("Models/Car/BackWheels.obj", { -0.0f, 0.0f, -.59f }, true, false);
 
 	//Link wheels to the car physics component
 	auto& phys = registry.GetComponent<CarPhysicsComponent>(player);

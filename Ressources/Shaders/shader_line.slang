@@ -16,6 +16,8 @@ struct Data
 }
 ParameterBlock<Data> data;
 
+
+
 struct VSOutput
 {
     float4 pos : SV_Position;

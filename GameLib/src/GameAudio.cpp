@@ -5,7 +5,7 @@
 
 void GameAudio::Create(ecsType& registry)
 {
-	KGR::Audio::WavComponent::Init("Ressources/Musics/");
+	KGR::Audio::WavComponent::Init();
 	auto player = registry.GetAllComponentsView<CarControllerComponent>();
 	auto playerEntity = *player.begin();
 
@@ -65,7 +65,7 @@ void GameAudio::Create(ecsType& registry)
 	float randTimer = static_cast<float>(std::rand() % (15 * 60));
 	audio.RadioSound.PlayAt(randTimer);
 	audio.RadioSound.SetVolume(0.1f);
-	
+
 	registry.AddComponents<CarAudioComponent>(playerEntity, std::move(audio));
 }
 

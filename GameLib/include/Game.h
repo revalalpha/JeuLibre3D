@@ -1,4 +1,3 @@
-//Code Your Game Here
 #pragma once
 #include <string>
 #include <vector>
@@ -19,7 +18,12 @@ struct Game
 	void UpdateGame(float dt);
 	void Run(const KGR::Tools::Chrono<float>::Time& fixedTime);
 	void Render();
+
 private:
 	std::unique_ptr<KGR::RenderWindow> window;
 	ecsType registry = ecsType{};
+
+	KGR::ECS::Entity::_64 menuBG;
+	KGR::ECS::Entity::_64 menuCam{};
+
 };

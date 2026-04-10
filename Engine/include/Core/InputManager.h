@@ -56,6 +56,11 @@ namespace KGR
         Num7 = GLFW_KEY_7,
         Num8 = GLFW_KEY_8,
         Num9 = GLFW_KEY_9,
+
+        Left_arrow = GLFW_KEY_LEFT,
+        Right_arrow = GLFW_KEY_RIGHT,
+        Up_arrow = GLFW_KEY_UP,
+        Down_arrow = GLFW_KEY_DOWN
     };
 
     /**
@@ -137,6 +142,7 @@ namespace KGR
          */
         glm::vec2 GetMousePosition() const;
         glm::vec2 GetMouseDelta() const ;
+		glm::vec2 GetMouseNdc() const;
 
         template<InputEnum T>
         bool IsKeyDown(T key)

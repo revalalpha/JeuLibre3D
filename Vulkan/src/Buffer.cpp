@@ -22,13 +22,13 @@ KGR::_Vulkan::Buffer::Buffer(Device* device, PhysicalDevice* phDevice,
 	createBuffer(m_size,  usage, MemoryProperties, m_buffer, m_bufferMemory, device, phDevice);
 }
 
-void KGR::_Vulkan::Buffer::Upload(const void* data, size_t size)
+void KGR::_Vulkan::Buffer::Upload(const void* data, size_t size,size_t offset)
 {	
 	if (!dest)
 		throw std::runtime_error("Buffer not mapped");
-	if (size > m_size)
+	if (offset + size > m_size)
 		throw std::out_of_range("impossible to upload");
-	std::memcpy(dest, data, (size_t)size);
+	std::memcpy(static_cast<char*>(dest) + offset, data, (size_t)size);
 }
 
 
@@ -39,26 +39,23 @@ void KGR::_Vulkan::Buffer::Copy(Buffer* other, Device* device, Queue* queue, Com
 	copyBuffer(other->m_buffer, m_buffer, other->m_size , device, queue, buffers);
 }
 
-vk::raii::Semaphore KGR::_Vulkan::Buffer::CopyAssync(Buffer* other, Device* device, Queue* queue,
-	CommandBuffers* buffers)
+void KGR::_Vulkan::Buffer::CopyAssync(vk::raii::CommandBuffer* commandBuffer, Buffer* other,
+	Device* device, Queue* queue)
 {
 	if (other->m_size > m_size)
 		throw std::out_of_range("impossible to copy");
-	return copyBufferAssync(other->m_buffer, m_buffer, other->m_size, device, queue, buffers);
+	 copyBufferAssync(commandBuffer,other->m_buffer, m_buffer, other->m_size, device, queue);
 }
 
-void KGR::_Vulkan::Buffer::CopyImage( Image* image, Device* device, Queue* queue, CommandBuffers* buffers)
+
+
+void KGR::_Vulkan::Buffer::CopyImage(vk::raii::CommandBuffer* commandBuffer , Image* image, Device* device, Queue* queue, CommandBuffers* buffers)
 {
-	vk::raii::CommandBuffer& commandBuffer = buffers->Acquire(device);
+
 	vk::BufferImageCopy  region{ .bufferOffset = 0, .bufferRowLength = 0, .bufferImageHeight = 0, .imageSubresource = {vk::ImageAspectFlagBits::eColor, 0, 0, 1}, .imageOffset = {0, 0, 0}, .imageExtent = {image->GetWidth(), image->GetHeight(), 1} };
-	vk::CommandBufferBeginInfo beginInfo{ .flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit };
-	commandBuffer.begin(beginInfo);
-	commandBuffer.copyBufferToImage(m_buffer, image->Get(), vk::ImageLayout::eTransferDstOptimal, { region });
-	commandBuffer.end();
-	vk::SubmitInfo submitInfo{ .commandBufferCount = 1, .pCommandBuffers = &*commandBuffer };
-	queue->Get().submit(submitInfo, nullptr);
-	queue->Get().waitIdle();
-	buffers->ReleaseCommandBuffer(commandBuffer);
+
+
+	commandBuffer->copyBufferToImage(m_buffer, image->Get(), vk::ImageLayout::eTransferDstOptimal, { region });
 }
 
 void KGR::_Vulkan::Buffer::createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage,
@@ -79,22 +76,17 @@ void KGR::_Vulkan::Buffer::createBuffer(vk::DeviceSize size, vk::BufferUsageFlag
 	 commandBuffer.begin(vk::CommandBufferBeginInfo{ .flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit });
 	commandBuffer.copyBuffer(*srcBuffer, *dstBuffer, vk::BufferCopy(0, 0, size));
 	commandBuffer.end();
-	queue->Get().submit(vk::SubmitInfo{ .commandBufferCount = 1, .pCommandBuffers = &*commandBuffer }, nullptr);
-	queue->Get().waitIdle();
+	device->Get().resetFences(*buffers->GetFence(commandBuffer));
+	queue->Get().submit(vk::SubmitInfo{ .commandBufferCount = 1, .pCommandBuffers = &*commandBuffer }, buffers->GetFence(commandBuffer));
+	auto result = device->Get().waitForFences({ buffers->GetFence(commandBuffer) }, vk::True, UINT64_MAX);
 	buffers->ReleaseCommandBuffer(commandBuffer);
 }
 
-vk::raii::Semaphore KGR::_Vulkan::Buffer::copyBufferAssync(vk::raii::Buffer& srcBuffer, vk::raii::Buffer& dstBuffer,
-	vk::DeviceSize size, Device* device, Queue* queue, CommandBuffers* buffers)
+void KGR::_Vulkan::Buffer::copyBufferAssync(vk::raii::CommandBuffer* commandBuffer, vk::raii::Buffer& srcBuffer,
+	vk::raii::Buffer& dstBuffer, vk::DeviceSize size, Device* device, Queue* queue)
 {
-	vk::raii::Semaphore semaphore{ device->Get(), vk::SemaphoreCreateInfo{} };
-	vk::raii::CommandBuffer& commandBuffer = buffers->Acquire(device);
-	commandBuffer.begin(vk::CommandBufferBeginInfo{ .flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit });
-	commandBuffer.copyBuffer(*srcBuffer, *dstBuffer, vk::BufferCopy(0, 0, size));
-	commandBuffer.end();
-	queue->Get().submit(vk::SubmitInfo{ .commandBufferCount = 1, .pCommandBuffers = &*commandBuffer,.pSignalSemaphores = &*semaphore }, nullptr);
-	buffers->ReleaseCommandBuffer(commandBuffer);
-	return semaphore;
+	commandBuffer->copyBuffer(*srcBuffer, *dstBuffer, vk::BufferCopy(0, 0, size));
+
 }
 
 uint32_t KGR::_Vulkan::Buffer::findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties, PhysicalDevice* phDevice)

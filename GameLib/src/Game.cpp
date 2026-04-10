@@ -33,7 +33,6 @@
 #include "Core/InputManager.h"
 #include "GameRenderer.h"
 #include "GameAudio.h"
-#include "ScoreManager.h"
 #include "DebugRenderer.h"
 
 GameAudio gameAudio;
@@ -46,6 +45,18 @@ void Game::Init(const std::string& fp)
 	window = std::make_unique<KGR::RenderWindow>(glm::vec2{ 1920,1080 }, "test", projectRoot / "Ressources");
 	window->GetInputManager()->SetMode(GLFW_CURSOR_DISABLED);
 
+	menuCam = registry.CreateEntity();
+	registry.AddComponents<CameraComponent, TransformComponent>(menuCam, CameraComponent{}, TransformComponent{});
+
+	auto& cam = registry.GetComponent<CameraComponent>(menuCam);
+	auto& tr = registry.GetComponent<TransformComponent>(menuCam);
+
+	cam.SetType(CameraComponent::Type::Ortho);
+	tr.SetPosition({ 0,0,1 });
+
+	window->RegisterCam(cam, tr);
+
+
 	//Player
 	Player player;
 	player.CreatePlayer(registry, *window);
@@ -55,7 +66,7 @@ void Game::Init(const std::string& fp)
 
 	//Track
 	Track track;
-	track.CreateTrack(registry, *window);
+	track.CreateMap(registry, *window);
 
 	KGR::Tools::Random rd;
 	auto yScale = rd.getRandomNumberRange(5.0f, 100.0f, 8);
@@ -144,7 +155,6 @@ void Game::Run(const KGR::Tools::Chrono<float>::Time& fixedTime)
 		lag += elapsed;
 		//set scene
 		//Input 
-
 
 		// need improvement if update is too heavy and create lag maybe separate physics and update for animation 
 		while (lag >= fixTick)

@@ -79,26 +79,6 @@ const KGR::_Vulkan::DebugRenderer& KGR::_Vulkan::DebugRenderer::Get() const
     return *this;
 }
 
-KGR::_Vulkan::Buffer& KGR::_Vulkan::DebugRenderer::GetBuffer()
-{
-    return m_debugBuffer;
-}
-
-const KGR::_Vulkan::Buffer& KGR::_Vulkan::DebugRenderer::GetBuffer() const
-{
-    return m_debugBuffer;
-}
-
-size_t KGR::_Vulkan::DebugRenderer::GetVertexCount()
-{
-    return m_lines.size();
-}
-
-const size_t KGR::_Vulkan::DebugRenderer::GetVertexCount() const
-{
-    return m_lines.size();
-}
-
 void KGR::_Vulkan::DebugRenderer::DrawSphere(const KGR::Sphere& sphere, const glm::vec3& color)
 {
     glm::vec3 c = sphere.GetCenter();
@@ -189,8 +169,8 @@ void KGR::_Vulkan::DebugRenderer::Upload()
 	);
 
 	m_debugBuffer.MapMemory(size);
+
 	m_debugBuffer.Upload(m_lines);
-    m_debugBuffer.UnMapMemory();
 }
 
 void KGR::_Vulkan::DebugRenderer::Render(vk::raii::CommandBuffer& cmd, KGR::_Vulkan::Pipeline& debugPipeline)
