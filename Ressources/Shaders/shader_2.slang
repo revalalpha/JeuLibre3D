@@ -1,4 +1,4 @@
-struct VSInput {
+²struct VSInput {
     float3 inPosition;
     float3 normal;
     float4 inColor;
