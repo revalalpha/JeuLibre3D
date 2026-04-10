@@ -26,7 +26,7 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 
 	//Transform
 	TransformComponent carTransform;
-	carTransform.SetPosition({ 0, 0.2f, 0 });
+	carTransform.SetPosition({ 30, 0.31, 10 });
 	carTransform.SetRotation({ 0, glm::radians(180.0f), 0 });
 	
 	////Texture

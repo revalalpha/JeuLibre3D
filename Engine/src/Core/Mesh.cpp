@@ -12,6 +12,7 @@
 
 #include "Hasher.h"
 #include "VulkanCore.h"
+#include <iostream>
 
 
 SubMeshes::~SubMeshes()
@@ -245,6 +246,7 @@ std::unique_ptr<Mesh> LoadMesh(const std::string& filePath, KGR::_Vulkan::Vulkan
 			auto t = tangent[i];
 			allVertices[i].tangent = { t.x,t.y,t.z,1 };
 		}*/
+
 		result->AddSubMesh(std::make_unique<SubMeshes>(allVertices, indices,shape.name, core));
 	}
 	return std::move(result);

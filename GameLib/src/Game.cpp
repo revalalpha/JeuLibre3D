@@ -66,7 +66,7 @@ void Game::Init(const std::string& fp)
 
 	//Track
 	Track track;
-	track.CreateTrack(registry, *window);
+	track.CreateMap(registry, *window);
 
 	KGR::Tools::Random rd;
 	auto yScale = rd.getRandomNumberRange(5.0f, 100.0f, 8);

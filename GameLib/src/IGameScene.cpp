@@ -10,6 +10,7 @@
 #include "GameSystems/DriftSystem.h"
 #include "GameSystems/CarCollisionSystem.h"
 
+#include <iostream>
 
 GameAudio gameAudio;
 
@@ -27,7 +28,7 @@ void GameScene::Init(SceneManager* manager)
 
 	//Track
 	Track track;
-	track.CreateTrack(m_ecs, *m_window);
+	track.CreateMap(m_ecs, *m_window);
 
 	KGR::Tools::Random rd;
 	auto yScale = rd.getRandomNumberRange(5.0f, 100.0f, 8);
