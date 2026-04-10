@@ -50,8 +50,8 @@ void CarPhysicsSystem::Update(ecsType& registry, float dt)
         if (physic.throttle < -0.01f)
         {
             float speed = glm::length(physic.velocity);
-            float minBrake = 2.0f;
-            float maxBrake = 18.0f;
+            float minBrake = 0.1f;
+            float maxBrake = 2.0f;
 
             float speedFactor = glm::clamp(speed / 40.0f, 0.0f, 0.1f);
 
@@ -256,7 +256,7 @@ void CarPhysicsSystem::Update(ecsType& registry, float dt)
 
         transform.SetRotation({ 0.0f, 0.0f, 0.0f });
         transform.RotateEuler<RotData::Orientation::Yaw>(currentYaw);
-        transform.RotateEuler<RotData::Orientation::Pitch>(-control.smoothLiveAccel * 0.2f);
+        transform.RotateEuler<RotData::Orientation::Pitch>(-control.smoothLiveAccel * 0.3f);
 
     }
 }
