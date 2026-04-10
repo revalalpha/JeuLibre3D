@@ -50,7 +50,7 @@ void Player::CreatePlayer(ecsType& registry, KGR::RenderWindow& window)
 		mat.baseColor = &TextureLoader::Load("Textures/Car/Car_Base_Color.png", window.App());
 		//mat.emissive = &TextureLoader::Load("Textures/bloc_BaseColor_Emissive.png", window.App());
 		//mat.normalMap = &TextureLoader::Load("Textures/bloc_Normal.png", window.App());
-		mat.pbrMap = &TextureLoader::Load("Textures/Car/RGBMaterial.001.png", window.App());
+		mat.pbrMap = &TextureLoader::Load("Textures/Car/celica_body_Material_ORM.png", window.App());
 		text.materials[i] = mat;
 	}
 	
