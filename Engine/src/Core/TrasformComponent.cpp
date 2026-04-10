@@ -30,12 +30,12 @@ glm::mat4 TransformComponent::GetTranslationMatrix()
 
 glm::vec3 TransformComponent::GetScale() const
 {
-	return m_scale.data * 2.0f;
+	return m_scale.data ;
 }
 
 void TransformComponent::SetScale(const glm::vec3& other)
 {
-	m_scale.data = other / 2.0f;
+	m_scale.data = other;
 	m_scale.isDirty = true;
 }
 
@@ -84,7 +84,7 @@ glm::mat4 TransformComponent::GetRotationMatrix()
 	if (!m_rotation.isDirty)
 		return m_rotationMat;
 
-	m_rotationMat = glm::toMat4(glm::normalize(m_rotation.data));
+	m_rotationMat = glm::mat4_cast(m_rotation.data);
 	m_rotation.isDirty = false;
 
 	return m_rotationMat;

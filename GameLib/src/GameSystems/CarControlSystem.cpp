@@ -43,7 +43,14 @@ void CarControlSystem::Update(ecsType& registry, KGR::RenderWindow& window, floa
 			steeringInput = -1.0f;
 		}
 
-		controller.acceleration = accelerationInput;
+		float smoothSpeed = 32.0f;
+
+		bool changingDir = (accelerationInput > 0.01f && controller.acceleration < -0.01f) || (accelerationInput < -0.01f && controller.acceleration > 0.01f);
+
+		if (changingDir)
+			smoothSpeed = 0.75f;
+
+		controller.acceleration = glm::mix(controller.acceleration, accelerationInput, deltaTime * smoothSpeed);
 		controller.steering = glm::mix(controller.steering, steeringInput, kSteerDamping);
 		//std::println("steeringInput : {}, controller.steering : {}", steeringInput, controller.steering);
 
