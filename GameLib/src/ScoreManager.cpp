@@ -4,7 +4,7 @@
 #include <cmath>
 #include "glm/glm.hpp"
 
-void ScoreManager::Update(float driftFactor, float speed, float dt)
+void ScoreManager::Run(float driftFactor, float speed, float dt)
 {
 	float factor = driftFactor;
 	if(driftFactor < 0.f)
@@ -19,8 +19,7 @@ void ScoreManager::Update(float driftFactor, float speed, float dt)
 		AddScore(points);
 		time += dt;
 		ComputeMult(dt);
-		if (m_score > m_highScore)
-			m_highScore = m_score;
+		SetHighScore();
 		cancelTimer = 3.f;
 	}
 	else

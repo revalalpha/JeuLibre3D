@@ -26,4 +26,5 @@
 		Scene* GetCurrentScene();
 		std::optional<std::uint64_t> m_currentIndex;
 		std::unordered_map<std::uint64_t, std::unique_ptr<Scene>> m_scenes;
+		
 	};

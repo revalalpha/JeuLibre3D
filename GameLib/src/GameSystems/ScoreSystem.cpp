@@ -34,8 +34,8 @@ void ScoreSystem::createScore(ecsType& registry, KGR::RenderWindow& window)
 		// same as always 
 		auto e = registry.CreateEntity();
 		TextComp text;
-		text.text.font = &FontLoader::Load("Fonts/JeuLibre_Regular_1.ttf", window.App(), 30.f);
-		text.text.SetText("0");
+		text.text.font = &FontLoader::Load("Fonts/arial.ttf", window.App(), 30.f);
+		text.text.SetText(" ");
 		text.text.textTexture = &TextureLoader::Load("Textures/font.png", window.App());
 		text.text.SetAlign(Text::Align::Center);
 
@@ -59,7 +59,7 @@ void ScoreSystem::createScore(ecsType& registry, KGR::RenderWindow& window)
 		auto e = registry.CreateEntity();
 		TextComp text;
 		text.text.font = &FontLoader::Load("Fonts/Roasthink.ttf", window.App(), 30.f);
-		text.text.SetText("mult x");
+		text.text.SetText(" ");
 		text.text.textTexture = &TextureLoader::Load("Textures/rouge.jpg", window.App());
 		text.text.SetAlign(Text::Align::Center);
 
@@ -82,8 +82,8 @@ void ScoreSystem::createScore(ecsType& registry, KGR::RenderWindow& window)
 		// same as always 
 		auto e = registry.CreateEntity();
 		TextComp text;
-		text.text.font = &FontLoader::Load("Fonts/JeuLibre_Regular_1.ttf", window.App(), 30.f);
-		text.text.SetText("1");
+		text.text.font = &FontLoader::Load("Fonts/arial.ttf", window.App(), 30.f);
+		text.text.SetText(" ");
 		text.text.textTexture = &TextureLoader::Load("Textures/rouge.jpg", window.App());
 		text.text.SetAlign(Text::Align::Center);
 
@@ -211,11 +211,10 @@ void ScoreSystem::Update(ecsType& registry, float deltaTime, KGR::RenderWindow& 
 				std::string S = " ";
 				if (ScoreComp.m_scoreManager.GetMultiplier() <= 1)
 				{
-					TextMult.text.font = &FontLoader::Load("Fonts/arial.ttf", window.App(), 30.f);
+					S = " ";
 				}
 				else
 				{
-					TextMult.text.font = &FontLoader::Load("Fonts/Roasthink.ttf", window.App(), 30.f);
 					S = "Mult x";
 				}
 				TextMult.text.SetText(S);
